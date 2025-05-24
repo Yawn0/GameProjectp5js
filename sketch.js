@@ -26,15 +26,12 @@ var blobArmLength = 10;
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
 
-// tree properties
 var treePos_x;
 var treePos_y;
-
-//canyon properties
 var canyon;
-
-//collectable token properties
 var collectible;
+var mountain;
+var cloud;
 
 
 function mousePressed()
@@ -66,6 +63,16 @@ function setup()
 		y_pos: 100,
 		size: 50
 	};
+
+	mountain = {
+		x_pos: 0,
+		width: 100
+	}
+
+	cloud = {
+		x_pos: 0,
+		width: 100
+	}
 }
 
 function draw()
@@ -78,19 +85,22 @@ function draw()
 
 	//1. a cloud in the sky
 	fill(255);
-	ellipse(220, 100, 80, 60);
-	ellipse(260, 90, 100, 70);
-	ellipse(300, 100, 80, 60);
-	ellipse(250, 120, 120, 80);
+	stroke(0);
+	ellipse(cloud.x_pos + 220, 100, 80, 60);
+	ellipse(cloud.x_pos + 260, 90, 100, 70);
+	ellipse(cloud.x_pos + 300, 100, 80, 60);
+	noStroke();
+	ellipse(cloud.x_pos + 250, 120, 120, 80);
 
 	//2. a mountain in the distance
 	// Base layer of the mountain
+	noStroke();
 	fill(120, 120, 120); // dark grey for the base
-	triangle(200, floorPos_y, 510, 150, 820, floorPos_y); // main mountain
+	triangle(mountain.x_pos + 200, floorPos_y, mountain.x_pos + 510, 150, mountain.x_pos + 820, floorPos_y); // main mountain
 	fill(150, 150, 150); // medium grey
-	triangle(320, floorPos_y, 510, 200, 670, floorPos_y); // inner mountain
+	triangle(mountain.x_pos + 320, floorPos_y, mountain.x_pos + 510, 200, mountain.x_pos + 670, floorPos_y); // inner mountain
 	fill(255, 255, 255); // white for the snow
-	triangle(465, 250, 510, 150, 555, 250); // snowcap
+	triangle(mountain.x_pos + 465, 250, mountain.x_pos + 510, 150, mountain.x_pos + 555, 250); // snowcap
 
 	// //3. a tree
 	// fill(139, 69, 19); // brown color for the trunk
@@ -118,7 +128,7 @@ function draw()
 	fill(100, 170, 35);
 	triangle(treePos_x - 30, floorPos_y - 95, treePos_x + 20, floorPos_y - 150, treePos_x + 70, floorPos_y - 95);
 	fill(100, 180, 35);
-	triangle(treePos_x - 20, floorPos_y - 125, treePos_x + 20, floorPos_y - 190, treePos_x + 60, floorPos_y - 125);
+	triangle(treePos_x - 20, floorPos_y - 125, treePos_x + 20, floorPos_y - 180, treePos_x + 60, floorPos_y - 125);
 
 
 	//4. a canyon
@@ -134,8 +144,13 @@ function draw()
 	endShape();
 
 	//5. a collectable token - eg. a jewel, fruit, coins
+	stroke(0);
 	fill(255, 215, 0);
-	ellipse(400, 400, 25, 25);
+	ellipse(collectible.x_pos + 300, collectible.y_pos + 300, collectible.size * 0.65);
+	fill(255, 255, 255);
+	ellipse(collectible.x_pos + 300, collectible.y_pos + 300, collectible.size * 0.45);
+	fill(255, 215, 0);
+	ellipse(collectible.x_pos + 300, collectible.y_pos + 300, collectible.size * 0.25);
 
 	// Blobby - Standing front
 	// Feet
