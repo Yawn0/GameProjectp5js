@@ -3,26 +3,26 @@
 The Game Project
 
 */
-var floorPos_y = 432;
-var gameChar_x = 0;
-var gameChar_y = 0;
+var floorPos_y;
+var gameChar_x;
+var gameChar_y;
 
 // Blobby properties
-var blobBodyColor = [100, 180, 255]; // Light blue
-var blobEyeColor = [255, 255, 255]; // White
-var blobPupilColor = [0, 0, 0]; // Black
-var blobMouthColor = [0, 0, 0]; // Black
-var blobFeetColor = [80, 150, 220]; // Darker blue
-var blobArmColor = blobFeetColor; // Dark blue
+const blobBodyColor = [100, 180, 255]; // Light blue
+const blobEyeColor = [255, 255, 255]; // White
+const blobPupilColor = [0, 0, 0]; // Black
+const blobMouthColor = [0, 0, 0]; // Black
+const blobFeetColor = [80, 150, 220]; // Darker blue
+const blobArmColor = blobFeetColor; // Dark blue
 
-var blobBodyWidth = 40;
-var blobBodyHeight = 45;
-var blobEyeSize = 8;
-var blobPupilSize = 4;
-var blobFeetWidth = 12;
-var blobFeetHeight = 8;
-var blobArmWidth = 5;
-var blobArmLength = 10;
+const blobBodyWidth = 40;
+const blobBodyHeight = 45;
+const blobEyeSize = 8;
+const blobPupilSize = 4;
+const blobFeetWidth = 12;
+const blobFeetHeight = 8;
+const blobArmWidth = 5;
+const blobArmLength = 10;
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
 
@@ -33,35 +33,47 @@ var collectible;
 var mountain;
 var cloud;
 
+var isLeft;
+var isRight;
+var isFalling;
+var isPlummeting;
 
-function mousePressed()
-{
-	gameChar_x = mouseX;
-	gameChar_y = mouseY;
-}
+
+// function mousePressed()
+// {
+// 	gameChar_x = mouseX;
+// 	gameChar_y = mouseY;
+// }
 
 function setup()
 {
 	createCanvas(1024, 576);
 
-	blobDefaultEyebrowStart= PI + 0.3;
-	blobDefaultEyebrowStop= TWO_PI - 0.3;
-
+	floorPos_y = height * 3/4;
 	gameChar_x = width/2;
 	gameChar_y = floorPos_y;
 
 	treePos_x = width/2;
 	treePos_y = height/2;
 
-	canyon = {
-		x_pos: 0,
-		width: 100
-	};
+	isLeft = false;
+	isRight = false;
+	isFalling = false;
+	isPlummeting = false;
+
+	blobDefaultEyebrowStart= PI + 0.3;
+	blobDefaultEyebrowStop= TWO_PI - 0.3;
 
 	collectible = {
 		x_pos: 100,
-		y_pos: 100,
-		size: 50
+		y_pos: floorPos_y,
+		size: 40,
+		isFound: false
+	};
+
+	canyon = {
+		x_pos: 150,
+		width: 80
 	};
 
 	mountain = {
