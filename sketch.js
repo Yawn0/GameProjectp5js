@@ -26,8 +26,8 @@ const blobArmLength = 10;
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
 
-var treePos_x;
-var treePos_y;
+
+var trees_x;
 var canyon;
 var collectible;
 var mountain;
@@ -52,9 +52,6 @@ function setup()
 	floorPos_y = height * 3/4;
 	gameChar_x = width/2;
 	gameChar_y = floorPos_y;
-
-	treePos_x = width/2;
-	treePos_y = height/2;
 
 	isLeft = false;
 	isRight = false;
@@ -97,8 +94,14 @@ function draw()
 	
 	drawCanyon();
 	drawMountain();
-	drawClaud();
-	drawTrees();
+	drawCloud();
+
+	trees_x = [100, 300, 500, 700, 900];
+
+	for (var i = 0; i < trees_x.length; i++)
+	{
+		drawTree(trees_x[i], floorPos_y);
+	}
 
 	if(collectible.isFound == false){
 		drawCollectible();
@@ -436,7 +439,7 @@ function drawCanyon()
 	endShape();
 }
 
-function drawClaud()
+function drawCloud()
 {
 	fill(255);
 	stroke(0);
@@ -458,7 +461,7 @@ function drawMountain()
 	triangle(mountain.x_pos + 465, 250, mountain.x_pos + 510, 150, mountain.x_pos + 555, 250); // snowcap
 }
 
-function drawTrees()
+function drawTree(treePos_x, floorPos_y)
 {
 	// //3. a tree
 	// fill(139, 69, 19); // brown color for the trunk
