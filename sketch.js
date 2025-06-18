@@ -3,7 +3,7 @@
 The Game Project
 
 */
-var floorPos_y;
+var _floorPos_y;
 var gameChar_x;
 var gameChar_y;
 
@@ -41,27 +41,28 @@ var _isPlummeting;
 function setup()
 {
 	createCanvas(1024, 576);
+	
+	_floorPos_y = height * 3/4;
 
-	floorPos_y = height * 3/4;
 	gameChar_x = width/2;
-	gameChar_y = floorPos_y;
+	gameChar_y = _floorPos_y;
 
-	isLeft = false;
-	isRight = false;
-	isFalling = false;
-	isPlummeting = false;
+	_isLeft = false;
+	_isRight = false;
+	_isFalling = false;
+	_isPlummeting = false;
 
 	blobDefaultEyebrowStart= PI + 0.3;
 	blobDefaultEyebrowStop= TWO_PI - 0.3;
 
-	collectible = {
+	_collectible = {
 		x_pos: 100,
-		y_pos: floorPos_y,
+		y_pos: _floorPos_y,
 		size: 40,
 		isFound: false
 	};
 
-	canyon = {
+	_canyon = {
 		x_pos: 150,
 		width: 80
 	};
@@ -89,12 +90,12 @@ function setup()
 
 function draw()
 {
-	background(100, 155, 255); //fill the sky blue
+	background(100, 155, 255);
 
 	noStroke();
 	fill(0,155,0);
-	rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
-	
+	rect(0, _floorPos_y, width, height - _floorPos_y); //the ground
+
 	drawCanyon(_canyon, _floorPos_y);
 	
 	for (var i = 0; i < _mountains.length; i++)
@@ -110,12 +111,12 @@ function draw()
 		drawCloud(_clouds[i]);
 	}
 
-	if(collectible.isFound == false){
-		drawCollectible();
+	if(_collectible.isFound == false){
+		drawCollectible(_collectible);
 	}
 
-	if(dist(gameChar_x, gameChar_y, collectible.x_pos, collectible.y_pos) < 20){
-		collectible.isFound = true;
+	if(dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20){
+		_collectible.isFound = true;
 	}
 
 	drawCharacter();
@@ -123,22 +124,19 @@ function draw()
 
 function keyPressed()
 {
-	if(isPlummeting)
+	if(_isPlummeting)
 	{
-		console.log("Plummeting");
 		return;
 	}
-	console.log(keyCode);
-	console.log(key);
 	if(key == 'a')
 	{
-		isLeft = true;
+		_isLeft = true;
 	}
 	else if(key == 'd')
 	{
-		isRight = true;
+		_isRight = true;
 	}
-	else if((keyCode == 32 || key == 'w') && !isFalling)
+	else if((keyCode == 32 || key == 'w') && !_isFalling)
 	{
 		gameChar_y -= 100;
 	}
@@ -146,44 +144,39 @@ function keyPressed()
 
 function keyReleased()
 {
-	if(isPlummeting)
+	if(_isPlummeting)
 	{
-		console.log("Plummeting");
 		return;
 	}
 	if(key == 'a')
 	{
-		isLeft = false;
+		_isLeft = false;
 	}
 	else if(key == 'd')
 	{
-		isRight = false;
+		_isRight = false;
 	}
 }
 
 function drawCharacter(){
 
-	if(isLeft && isFalling)
+	if(_isLeft && _isFalling)
 	{
 		blobbyJumpingLeft();
 	}
-	else if(isRight && isFalling)
+	else if(_isRight && _isFalling)
 	{
 		blobbyJumpingRight();
 	}
-	else if(isLeft)
+	else if(_isLeft)
 	{
-		console.log('gameChar_x ' + gameChar_x);
-		console.log('gameChar_y ' + gameChar_y);
-		console.log('collectible.x_pos ' + collectible.x_pos);
-		console.log('collectible.y_pos ' + collectible.y_pos);
 		blobbyWalkingLeft();
 	}
-	else if(isRight)
+	else if(_isRight)
 	{
 		blobbyWalkingRight();
 	}
-	else if(isFalling || isPlummeting)
+	else if(_isFalling || _isPlummeting)
 	{
 		blobbyJumping();
 	}
@@ -192,35 +185,35 @@ function drawCharacter(){
 		blobbyStandingFront();
 	}
 
-	if(isLeft)
+	if(_isLeft)
 	{
 		gameChar_x -= 3;
 	}
-	else if(isRight)
+	else if(_isRight)
 	{
 		gameChar_x += 3;
 	}
 
-	if(gameChar_y < floorPos_y)
+	if(gameChar_y < _floorPos_y)
 	{
 		gameChar_y += 3;
-		isFalling = true;
+		_isFalling = true;
 	}
 	else
 	{
-		isFalling = false;
+		_isFalling = false;
 	}
 
-	if(gameChar_x < canyon.x_pos + canyon.width 
-		&& gameChar_x > canyon.x_pos
-		&& gameChar_y >= floorPos_y){
-		isPlummeting = true;
+	if(gameChar_x < _canyon.x_pos + _canyon.width 
+		&& gameChar_x > _canyon.x_pos
+		&& gameChar_y >= _floorPos_y){
+		_isPlummeting = true;
 	}
 
-	if(isPlummeting){
+	if(_isPlummeting){
 		gameChar_y += 5;
-		isLeft = false;
-		isRight = false;
+		_isLeft = false;
+		_isRight = false;
 	}
 }
 
