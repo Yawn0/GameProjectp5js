@@ -250,15 +250,14 @@ function blobbyStandingFront()
 
 function blobbyJumping()
 {
-	var jumpOffset = 0;
 	// Feet (tucked in)
 	stroke(0);
 	fill(BLOB_FEET_COLOR);
-	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffset + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
-	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffset + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
 	// Body
 	fill(BLOB_BODY_COLOR);
-	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffset, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.1); // Slightly stretched
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.1); // Slightly stretched
 	// Arms
 	fill(BLOB_ARM_COLOR);
 	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
@@ -266,20 +265,20 @@ function blobbyJumping()
 	noStroke();
 	// Eyes (wide)
 	fill(BLOB_EYE_COLOR);
-	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
-	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
 	fill(BLOB_PUPIL_COLOR);
-	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
-	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
 	// Eyebrows
 	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7 + jumpOffset, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
-	arc(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7 + jumpOffset, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (o shape)
 	noStroke();
 	fill(BLOB_MOUTH_COLOR);
-	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT * 0.35 + jumpOffset, 8, 8);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT * 0.35, 8, 8);
 }
 
 function blobbyWalkingLeft()
@@ -346,14 +345,13 @@ function blobbyWalkingRight()
 
 function blobbyJumpingLeft()
 {
-	var jumpOffsetLR = 0;
 	// Feet (swept back)
 	stroke(0);
 	fill(BLOB_FEET_COLOR);
-	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR);
+	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2);
 	rotate(-PI / 12.0); // Tilt left
 	fill(BLOB_BODY_COLOR);
 	ellipse(0, 0, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.05);
@@ -380,14 +378,13 @@ function blobbyJumpingLeft()
 
 function blobbyJumpingRight()
 {
-	var jumpOffsetLR = 0;
 	// Feet (swept back)
 	stroke(0);
 	fill(BLOB_FEET_COLOR);
-	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR);
+	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2);
 	rotate(PI / 12.0); // Tilt right
 	fill(BLOB_BODY_COLOR);
 	ellipse(0, 0, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.05);
