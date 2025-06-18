@@ -23,6 +23,8 @@ const blobFeetWidth = 12;
 const blobFeetHeight = 8;
 const blobArmWidth = 5;
 const blobArmLength = 10;
+const blobSpeed = 3;
+
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
 
@@ -38,9 +40,13 @@ var _isRight;
 var _isFalling;
 var _isPlummeting;
 
+var cameraPosX;
+
 function setup()
 {
 	createCanvas(1024, 576);
+
+	cameraPosX = 0;
 	
 	_floorPos_y = height * 3/4;
 
@@ -90,36 +96,28 @@ function setup()
 
 function draw()
 {
+	cameraPosX += (_isLeft ? -blobSpeed : 0) + (_isRight ? blobSpeed : 0);
+
 	background(100, 155, 255);
 
-	noStroke();
-	fill(0,155,0);
-	rect(0, _floorPos_y, width, height - _floorPos_y); //the ground
+	drawGround();
 
-	drawCanyon(_canyon, _floorPos_y);
-	
-	for (var i = 0; i < _mountains.length; i++)
-	{
-		drawMountain(_mountains[i], _floorPos_y);
-	}
-	for (var i = 0; i < _trees_x.length; i++)
-	{
-		drawTree(_trees_x[i], _floorPos_y);
-	}
-	for (var i = 0; i < _clouds.length; i++)
-	{
-		drawCloud(_clouds[i]);
-	}
+	push();
+	translate(-cameraPosX, 0)
+
+	drawScenery();
+
+	drawCharacter();
 
 	if(_collectible.isFound == false){
 		drawCollectible(_collectible);
 	}
+	pop();
+
 
 	if(dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20){
 		_collectible.isFound = true;
 	}
-
-	drawCharacter();
 }
 
 function keyPressed()
@@ -187,16 +185,16 @@ function drawCharacter(){
 
 	if(_isLeft)
 	{
-		gameChar_x -= 3;
+		gameChar_x -= blobSpeed;
 	}
 	else if(_isRight)
 	{
-		gameChar_x += 3;
+		gameChar_x += blobSpeed;
 	}
 
 	if(gameChar_y < _floorPos_y)
 	{
-		gameChar_y += 3;
+		gameChar_y += blobSpeed;
 		_isFalling = true;
 	}
 	else
@@ -412,6 +410,30 @@ function blobbyJumpingRight()
 	ellipse(-blobBodyWidth * -0.4, blobBodyHeight * 0.2, 6, 6);
 	
 	pop();
+}
+
+function drawGround(){
+	noStroke();
+	fill(0,155,0);
+	rect(0, _floorPos_y, width, height - _floorPos_y); //the ground
+}
+
+function drawScenery()
+{
+	drawCanyon(_canyon, _floorPos_y);
+	
+	for (var i = 0; i < _mountains.length; i++)
+	{
+		drawMountain(_mountains[i], _floorPos_y);
+	}
+	for (var i = 0; i < _trees_x.length; i++)
+	{
+		drawTree(_trees_x[i], _floorPos_y);
+	}
+	for (var i = 0; i < _clouds.length; i++)
+	{
+		drawCloud(_clouds[i]);
+	}
 }
 
 function drawCollectible(collectible)
