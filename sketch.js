@@ -5,6 +5,7 @@ The Game Project
 */
 
 // --- Global constants ---
+// Canvas and gameplay constants
 const CANVAS_WIDTH = 1024;
 const CANVAS_HEIGHT = 576;
 const FLOOR_HEIGHT_RATIO = 3 / 4;
@@ -12,6 +13,7 @@ const JUMP_HEIGHT = 100;
 const GRAVITY_SPEED = 3; // Blobby falls at this speed
 const PLUMMET_SPEED = 6; // Blobby falls faster when plummeting
 
+// Blobby character appearance and movement constants
 const BLOBBY = {
     COLORS: {
         BODY: [100, 180, 255],// Light blue
@@ -37,6 +39,7 @@ const BLOBBY = {
 };
 
 // --- Global variables ---
+// Game state and world objects
 var _floorPos_y;
 var _cameraPosX;
 var _gameChar;
@@ -48,6 +51,7 @@ var _clouds;
 var _mountains;
 var _collectible;
 
+// Initializes game state and objects
 function setup()
 {
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -65,6 +69,7 @@ function setup()
         isPlummeting: false,
     };
 
+    // Initialize collectible object
     _collectible = {
         x_pos: 100,
         y_pos: _floorPos_y,
@@ -72,13 +77,16 @@ function setup()
         isFound: false
     };
 
+    // Initialize canyon object
     _canyon = {
         x_pos: 150,
         width: 80
     };
 
+    // Tree positions
     _trees_x = [85, 300, 450, 700, 850];
 
+    // Cloud coordinates (for cloud generation)
     _cloudsCoordinates = [
         { x_pos: 100, y_pos: 100 },
         { x_pos: 200, y_pos: 80 },
@@ -88,8 +96,10 @@ function setup()
         { x_pos: 1000, y_pos: 110 }
     ]
 
+    // Generate clouds from coordinates
     _clouds = generateClouds(_cloudsCoordinates);
 
+    // Mountain objects
     _mountains = [
         { x_pos: 0, width: 1 },
         { x_pos: 600, width: 1.1 },
@@ -98,6 +108,7 @@ function setup()
     ]
 }
 
+// Main game loop: updates camera, draws world, handles collectible logic
 function draw()
 {
     _cameraPosX += _gameChar.isLeft ? -BLOBBY.SPEED
@@ -122,12 +133,15 @@ function draw()
 
     pop();
 
+    // Check for collectible pickup
     if (dist(_gameChar.x, _gameChar.y, _collectible.x_pos, _collectible.y_pos) < 20)
     {
         _collectible.isFound = true;
     }
 }
 
+// --- Input handling ---
+// Maps key codes to movement directions
 function getDirectionalKey(keyCode)
 {
     if (keyCode == 65 || keyCode == LEFT_ARROW) return LEFT_ARROW;
@@ -136,6 +150,7 @@ function getDirectionalKey(keyCode)
     return '';
 }
 
+// Handles key press events for movement and jumping
 function keyPressed()
 {
     if (_gameChar.isPlummeting) return;
@@ -154,6 +169,7 @@ function keyPressed()
     }
 }
 
+// Handles key release events to stop movement
 function keyReleased()
 {
     if (_gameChar.isPlummeting) return;
@@ -170,8 +186,10 @@ function keyReleased()
 }
 
 // --- Game Character Logic ---
+// Draws and updates the main character's state and animation
 function drawCharacter()
 {
+	// Select animation based on movement state
 	if (_gameChar.isLeft && _gameChar.isFalling)
 		blobbyJumpingLeft();
 	else if (_gameChar.isRight && _gameChar.isFalling)
@@ -185,11 +203,13 @@ function drawCharacter()
 	else
 		blobbyStandingFront();
 
+	// Move character horizontally
 	if (_gameChar.isLeft)
 		_gameChar.x -= BLOBBY.SPEED;
 	else if (_gameChar.isRight)
 		_gameChar.x += BLOBBY.SPEED;
 
+	// Apply gravity if above floor
 	if (_gameChar.y < _floorPos_y)
 	{
 		_gameChar.y += GRAVITY_SPEED;
@@ -198,6 +218,7 @@ function drawCharacter()
 	else
 		_gameChar.isFalling = false;
 
+    // Check if character is over the canyon
     const isOverCanyon = _gameChar.x > _canyon.x_pos 
         && _gameChar.x < _canyon.x_pos + _canyon.width 
         && _gameChar.y >= _floorPos_y;
@@ -205,6 +226,7 @@ function drawCharacter()
 	if (isOverCanyon)
 		_gameChar.isPlummeting = true;
 
+	// Plummet if over canyon
 	if (_gameChar.isPlummeting)
 	{
 		_gameChar.y += PLUMMET_SPEED;
@@ -212,6 +234,9 @@ function drawCharacter()
 		_gameChar.isRight = false;
 	}
 }
+
+// --- Blobby Drawing Functions ---
+// Each function draws Blobby in a different pose
 
 function blobbyStandingFront()
 {
@@ -407,6 +432,9 @@ function blobbyJumpingRight()
     pop();
 }
 
+// --- World Drawing Functions ---
+
+// Draws the ground
 function drawGround()
 {
     noStroke();
@@ -414,24 +442,26 @@ function drawGround()
     rect(0, _floorPos_y, width, height - _floorPos_y); //the ground
 }
 
+// Draws all scenery objects (canyon, mountains, trees, clouds)
 function drawScenery()
 {
     drawCanyon(_canyon, _floorPos_y);
 
-    for (var i = 0; i < _mountains.length; i++)
+    for (let i = 0; i < _mountains.length; i++)
     {
         drawMountain(_mountains[i], _floorPos_y);
     }
-    for (var i = 0; i < _trees_x.length; i++)
+    for (let i = 0; i < _trees_x.length; i++)
     {
         drawTree(_trees_x[i], _floorPos_y);
     }
-    for (var i = 0; i < _clouds.length; i++)
+    for (let i = 0; i < _clouds.length; i++)
     {
         drawCloud(_clouds[i]);
     }
 }
 
+// Draws the collectible item
 function drawCollectible(collectible)
 {
     stroke(0);
@@ -443,6 +473,7 @@ function drawCollectible(collectible)
     ellipse(collectible.x_pos, collectible.y_pos - (collectible.size / 2), collectible.size * 0.25);
 }
 
+// Draws the canyon
 function drawCanyon(canyon, _floorPos_y)
 {
     fill(139, 69, 19);
@@ -457,7 +488,9 @@ function drawCanyon(canyon, _floorPos_y)
     endShape();
 }
 
+// --- Cloud Generation and Drawing ---
 
+// Generates cloud objects from coordinates
 function generateClouds(cloudsCoordinates)
 {
     let clouds = [];
@@ -492,6 +525,7 @@ function generateClouds(cloudsCoordinates)
     return clouds;
 }
 
+// Draws a single cloud
 function drawCloud(cloud)
 {
     fill(255);
@@ -499,6 +533,9 @@ function drawCloud(cloud)
     ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
 }
 
+// --- Mountain and Tree Drawing ---
+
+// Draws a mountain object
 function drawMountain(mountain, floorPos_y)
 {
     noStroke();
@@ -519,6 +556,7 @@ function drawMountain(mountain, floorPos_y)
         , mountain.x_pos + (365 * mountain.width), 250);
 }
 
+// Draws a tree at a given position
 function drawTree(treePos_x, treePos_y)
 {
     fill(140, 70, 20);
