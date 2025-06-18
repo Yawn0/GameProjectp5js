@@ -115,28 +115,42 @@ function draw()
 	}
 	pop();
 
-
 	if (dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20)
 	{
 		_collectible.isFound = true;
 	}
 }
 
+function getDirectionalKey(key, keyCode){
+	if(keyCode == 65
+		|| keyCode == LEFT_ARROW
+		|| key == 'a'
+		|| key == 'A') return LEFT_ARROW;
+	else if(keyCode == 68
+		|| keyCode == RIGHT_ARROW
+		|| key == 'd'
+		|| key == 'D') return RIGHT_ARROW;
+	else if(keyCode == 87
+		|| keyCode == UP_ARROW
+		|| key == 'w'
+		|| key == 'W'
+		|| keyCode == 32
+		|| key == 'space'
+		|| key == 'SPACE') return UP_ARROW;
+	return '';
+}
+
 function keyPressed()
 {
 	if (_isPlummeting)
-	{
 		return;
-	}
-	if (key == 'a')
-	{
-		_isLeft = true;
-	}
-	else if (key == 'd')
-	{
-		_isRight = true;
-	}
-	else if ((keyCode == 32 || key == 'w') && !_isFalling)
+	
+	let directionKey = getDirectionalKey(key, keyCode);
+	
+	_isLeft = directionKey == LEFT_ARROW ? true : _isLeft;
+	_isRight = directionKey == RIGHT_ARROW ? true : _isRight;
+	
+	if ((directionKey == UP_ARROW) && !_isFalling)
 	{
 		gameChar_y -= 100;
 	}
@@ -145,17 +159,12 @@ function keyPressed()
 function keyReleased()
 {
 	if (_isPlummeting)
-	{
 		return;
-	}
-	if (key == 'a')
-	{
-		_isLeft = false;
-	}
-	else if (key == 'd')
-	{
-		_isRight = false;
-	}
+
+	let directionKey = getDirectionalKey(key, keyCode);
+
+	_isLeft = directionKey == LEFT_ARROW ? false : _isLeft;
+	_isRight = directionKey == RIGHT_ARROW ? false : _isRight;
 }
 
 function drawCharacter()
