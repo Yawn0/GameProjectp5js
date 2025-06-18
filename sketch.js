@@ -414,7 +414,7 @@ function blobbyJumpingRight()
 	pop();
 }
 
-function drawCollectible()
+function drawCollectible(collectible)
 {
 	stroke(0);
 	fill(255, 215, 0);
@@ -425,69 +425,69 @@ function drawCollectible()
 	ellipse(collectible.x_pos, collectible.y_pos - (collectible.size / 2), collectible.size * 0.25);
 }
 
-function drawCanyon()
+function drawCanyon(canyon, _floorPos_y)
 {
 	fill(139, 69, 19);
 	beginShape();
-	vertex(canyon.x_pos, floorPos_y);
-	vertex(canyon.x_pos - 20, floorPos_y + 40);
-	vertex(canyon.x_pos + 20, floorPos_y + 170);
-	vertex(canyon.x_pos - 30 + canyon.width, floorPos_y + 180);
-	vertex(canyon.x_pos + 20 + canyon.width, floorPos_y + 100);
-	vertex(canyon.x_pos + 40 + canyon.width, floorPos_y + 30);
-	vertex(canyon.x_pos + canyon.width, floorPos_y);
+	vertex(canyon.x_pos, _floorPos_y);
+	vertex(canyon.x_pos - 20, _floorPos_y + 40);
+	vertex(canyon.x_pos + 20, _floorPos_y + 170);
+	vertex(canyon.x_pos - 30 + canyon.width, _floorPos_y + 180);
+	vertex(canyon.x_pos + 20 + canyon.width, _floorPos_y + 100);
+	vertex(canyon.x_pos + 40 + canyon.width, _floorPos_y + 30);
+	vertex(canyon.x_pos + canyon.width, _floorPos_y);
 	endShape();
 }
 
-function drawCloud()
+function drawCloud(cloud)
 {
 	fill(255);
-	stroke(0);
-	ellipse(cloud.x_pos + 220, 100, 80, 60);
-	ellipse(cloud.x_pos + 260, 90, 100, 70);
-	ellipse(cloud.x_pos + 300, 100, 80, 60);
-	noStroke();
-	ellipse(cloud.x_pos + 250, 120, 120, 80);
+	// ellipse(x, y, width, height);
+	ellipse(cloud.x_pos, cloud.y_pos * random(0.5, 0.9)
+		, 100 * random(0.8, 1.2), 60);
+	ellipse(cloud.x_pos + 40, cloud.y_pos * random(0.5, 0.9)
+		, 100 * random(0.8, 1.2), 70);
+	ellipse(cloud.x_pos + 80, cloud.y_pos * random(0.5, 0.9)
+		, 100 * random(0.8, 1.2), 60);
+	ellipse(cloud.x_pos + 30, cloud.y_pos * random(0.5, 0.9)
+		, 100 * random(0.8, 1.2), 80);
 }
 
-function drawMountain()
+function drawMountain(mountain, floorPos_y)
 {
 	noStroke();
-	fill(120, 120, 120); // dark grey for the base
-	triangle(mountain.x_pos + 200, floorPos_y, mountain.x_pos + 510, 150, mountain.x_pos + 820, floorPos_y); // main mountain
-	fill(150, 150, 150); // medium grey
-	triangle(mountain.x_pos + 320, floorPos_y, mountain.x_pos + 510, 200, mountain.x_pos + 670, floorPos_y); // inner mountain
-	fill(255, 255, 255); // white for the snow
-	triangle(mountain.x_pos + 465, 250, mountain.x_pos + 510, 150, mountain.x_pos + 555, 250); // snowcap
+	 // main part of the mountain
+	fill(120, 120, 120);
+	//triangle(x1, y1, x2, y2, x3, y3);
+	triangle(mountain.x_pos, floorPos_y
+		, mountain.x_pos + (310 * mountain.width), 150
+		, mountain.x_pos + (620 * mountain.width), floorPos_y);
+	 // inner part
+	fill(150, 150, 150);
+	triangle(mountain.x_pos + (40 * mountain.width), floorPos_y
+		, mountain.x_pos + (310 * mountain.width), 200
+		, mountain.x_pos + (550 * mountain.width), floorPos_y);
+	// snowcap
+	fill(255, 255, 255);
+	triangle(mountain.x_pos + (250 * mountain.width), 250
+		, mountain.x_pos + (310 * mountain.width), 170
+		, mountain.x_pos + (365 * mountain.width), 250);
 }
 
-function drawTree(treePos_x, floorPos_y)
+function drawTree(treePos_x, treePos_y)
 {
-	// //3. a tree
-	// fill(139, 69, 19); // brown color for the trunk
-	// rect(790, 376, 20, 60); // trunk
-	// fill(34, 139, 34); // green color for the leaves
-	// ellipse(800, 356, 60, 60); // top leaves
-	// ellipse(780, 376, 60, 60); // left leaves
-	// ellipse(820, 376, 60, 60); // right leaves
-
-	// // second tree using triangles
-	// fill(140, 70, 20); // brown color for the trunk
-	// rect(880, 375, 20, 60); // trunk
-	// fill(100, 160, 35); // green color for the leaves
-	// triangle(820, 380, 885, 320, 960, 380); // top leaves
-	// fill(100, 170, 35); // green color for the leaves
-	// triangle(830, 355, 885, 280, 950, 355); // top leaves
-	// fill(100, 180, 35); // green color for the leaves
-	// triangle(840, 325, 885, 260, 940, 325); // top leaves
-
-	//Tree
 	fill(140, 70, 20);
-	rect(treePos_x, floorPos_y, 40, -150);
+	rect(treePos_x, treePos_y, 40, -150);
 	fill(100, 160, 35);
-	triangle(treePos_x - 40, floorPos_y - 60, treePos_x + 20, floorPos_y - 120, treePos_x + 80, floorPos_y  - 60);
+	triangle(treePos_x - 40, treePos_y - 60
+		, treePos_x + 20, treePos_y - 120
+		, treePos_x + 80, treePos_y  - 60);
 	fill(100, 170, 35);
-	triangle(treePos_x - 30, floorPos_y - 95, treePos_x + 20, floorPos_y - 150, treePos_x + 70, floorPos_y - 95);
+	triangle(treePos_x - 30, treePos_y - 95
+		, treePos_x + 20, treePos_y - 150
+		, treePos_x + 70, treePos_y - 95);
 	fill(100, 180, 35);
-	triangle(treePos_x - 20, floorPos_y - 125, treePos_x + 20, floorPos_y - 180, treePos_x + 60, floorPos_y - 125);
+	triangle(treePos_x - 20, treePos_y - 125
+		, treePos_x + 20, treePos_y - 180
+		, treePos_x + 60, treePos_y - 125);
 }
