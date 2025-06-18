@@ -8,22 +8,22 @@ var gameChar_x;
 var gameChar_y;
 
 // Blobby properties
-const blobBodyColor = [100, 180, 255]; // Light blue
-const blobEyeColor = [255, 255, 255]; // White
-const blobPupilColor = [0, 0, 0]; // Black
-const blobMouthColor = [0, 0, 0]; // Black
-const blobFeetColor = [80, 150, 220]; // Darker blue
-const blobArmColor = blobFeetColor; // Dark blue
+const BLOB_BODY_COLOR = [100, 180, 255]; // Light blue
+const BLOB_EYE_COLOR = [255, 255, 255]; // White
+const BLOB_PUPIL_COLOR = [0, 0, 0]; // Black
+const BLOB_MOUTH_COLOR = [0, 0, 0]; // Black
+const BLOB_FEET_COLOR = [80, 150, 220]; // Darker blue
+const BLOB_ARM_COLOR = BLOB_FEET_COLOR; // Dark blue
 
-const blobBodyWidth = 40;
-const blobBodyHeight = 45;
-const blobEyeSize = 8;
-const blobPupilSize = 4;
-const blobFeetWidth = 12;
-const blobFeetHeight = 8;
-const blobArmWidth = 5;
-const blobArmLength = 10;
-const blobSpeed = 3;
+const BLOB_BODY_WIDTH = 40;
+const BLOB_BODY_HEIGHT = 45;
+const BLOB_EYE_SIZE = 8;
+const BLOB_PUPIL_SIZE = 4;
+const BLOB_FEET_WIDTH = 12;
+const BLOB_FEET_HEIGHT = 8;
+const BLOB_ARM_WIDTH = 5;
+const BLOB_ARM_LENGTH = 10;
+const BLOB_SPEED = 3;
 
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
@@ -96,7 +96,7 @@ function setup()
 
 function draw()
 {
-	cameraPosX += (_isLeft ? -blobSpeed : 0) + (_isRight ? blobSpeed : 0);
+	cameraPosX += (_isLeft ? -BLOB_SPEED : 0) + (_isRight ? BLOB_SPEED : 0);
 
 	background(100, 155, 255);
 
@@ -185,16 +185,16 @@ function drawCharacter(){
 
 	if(_isLeft)
 	{
-		gameChar_x -= blobSpeed;
+		gameChar_x -= BLOB_SPEED;
 	}
 	else if(_isRight)
 	{
-		gameChar_x += blobSpeed;
+		gameChar_x += BLOB_SPEED;
 	}
 
 	if(gameChar_y < _floorPos_y)
 	{
-		gameChar_y += blobSpeed;
+		gameChar_y += BLOB_SPEED;
 		_isFalling = true;
 	}
 	else
@@ -219,33 +219,33 @@ function blobbyStandingFront()
 {
 	// Feet
 	stroke(0);
-	fill(blobFeetColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.25, gameChar_y - blobFeetHeight / 2, blobFeetWidth, blobFeetHeight);
-	ellipse(gameChar_x + blobBodyWidth * 0.25, gameChar_y - blobFeetHeight / 2, blobFeetWidth, blobFeetHeight);
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT);
 	// Body
-	fill(blobBodyColor);
-	ellipse(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2, blobBodyWidth, blobBodyHeight);
+	fill(BLOB_BODY_COLOR);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT);
 	// Arms
-	fill(blobArmColor);
-	rect(gameChar_x - blobBodyWidth / 2, gameChar_y - blobBodyHeight * 0.4, blobArmWidth, blobArmLength, 5); // Left arm (vertical)
-	rect(gameChar_x + blobBodyWidth / 2 - blobArmWidth, gameChar_y - blobBodyHeight * 0.4, blobArmWidth, blobArmLength, 5); // Right arm (vertical)
+	fill(BLOB_ARM_COLOR);
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2, gameChar_y - BLOB_BODY_HEIGHT * 0.4, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (vertical)
+	rect(gameChar_x + BLOB_BODY_WIDTH / 2 - BLOB_ARM_WIDTH, gameChar_y - BLOB_BODY_HEIGHT * 0.4, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Right arm (vertical)
 	noStroke();
 	// Eyes
-	fill(blobEyeColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6, blobEyeSize, blobEyeSize);
-	ellipse(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6, blobEyeSize, blobEyeSize);
-	fill(blobPupilColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6, blobPupilSize, blobPupilSize);
-	ellipse(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6, blobPupilSize, blobPupilSize);
+	fill(BLOB_EYE_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE, BLOB_EYE_SIZE);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE, BLOB_EYE_SIZE);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
 	// Eyebrows
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.65, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
-	arc(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.65, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.65, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.65, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth
-	stroke(blobMouthColor);
+	stroke(BLOB_MOUTH_COLOR);
 	noFill();
-	arc(gameChar_x, gameChar_y - blobBodyHeight * 0.35, 10, 5, 0, PI);
+	arc(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT * 0.35, 10, 5, 0, PI);
 }
 
 function blobbyJumping()
@@ -253,63 +253,63 @@ function blobbyJumping()
 	var jumpOffset = 0;
 	// Feet (tucked in)
 	stroke(0);
-	fill(blobFeetColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.15, gameChar_y - blobFeetHeight / 2 + jumpOffset + 5, blobFeetWidth * 0.8, blobFeetHeight * 0.8);
-	ellipse(gameChar_x + blobBodyWidth * 0.15, gameChar_y - blobFeetHeight / 2 + jumpOffset + 5, blobFeetWidth * 0.8, blobFeetHeight * 0.8);
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffset + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.15, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffset + 5, BLOB_FEET_WIDTH * 0.8, BLOB_FEET_HEIGHT * 0.8);
 	// Body
-	fill(blobBodyColor);
-	ellipse(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2 + jumpOffset, blobBodyWidth, blobBodyHeight * 1.1); // Slightly stretched
+	fill(BLOB_BODY_COLOR);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffset, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.1); // Slightly stretched
 	// Arms
-	fill(blobArmColor);
-	rect(gameChar_x - blobBodyWidth / 2 + 2, gameChar_y - blobBodyHeight * 0.5  - blobArmLength * 0.5, blobArmWidth, blobArmLength, 5); // Left arm (slightly lower vertical)
-	rect(gameChar_x + blobBodyWidth / 2 - blobArmWidth - 2, gameChar_y - blobBodyHeight * 0.5 - blobArmLength * 0.5, blobArmWidth, blobArmLength, 5); // Right arm (slightly lower vertical)
+	fill(BLOB_ARM_COLOR);
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar_x + BLOB_BODY_WIDTH / 2 - BLOB_ARM_WIDTH - 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5 - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Right arm (slightly lower vertical)
 	noStroke();
 	// Eyes (wide)
-	fill(blobEyeColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6 + jumpOffset, blobEyeSize * 1.2, blobEyeSize * 1.2);
-	ellipse(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6 + jumpOffset, blobEyeSize * 1.2, blobEyeSize * 1.2);
-	fill(blobPupilColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6 + jumpOffset, blobPupilSize, blobPupilSize);
-	ellipse(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.6 + jumpOffset, blobPupilSize, blobPupilSize);
+	fill(BLOB_EYE_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_EYE_SIZE * 1.2, BLOB_EYE_SIZE * 1.2);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.6 + jumpOffset, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
 	// Eyebrows
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(gameChar_x - blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.7 + jumpOffset, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
-	arc(gameChar_x + blobBodyWidth * 0.2, gameChar_y - blobBodyHeight * 0.7 + jumpOffset, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x - BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7 + jumpOffset, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x + BLOB_BODY_WIDTH * 0.2, gameChar_y - BLOB_BODY_HEIGHT * 0.7 + jumpOffset, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (o shape)
 	noStroke();
-	fill(blobMouthColor);
-	ellipse(gameChar_x, gameChar_y - blobBodyHeight * 0.35 + jumpOffset, 8, 8);
+	fill(BLOB_MOUTH_COLOR);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT * 0.35 + jumpOffset, 8, 8);
 }
 
 function blobbyWalkingLeft()
 {
 	// Blobby - Walking left
 	stroke(0);
-	fill(blobFeetColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.25 + 3, gameChar_y - blobFeetHeight / 2, blobFeetWidth * 1.1, blobFeetHeight); // Front foot slightly bigger
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.25 + 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH * 1.1, BLOB_FEET_HEIGHT); // Front foot slightly bigger
 	// Body
-	fill(blobBodyColor);
-	ellipse(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2, blobBodyWidth, blobBodyHeight);
+	fill(BLOB_BODY_COLOR);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT);
 	// Feet (one forward, one back)
-	fill(blobFeetColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.1 + 3, gameChar_y - blobFeetHeight / 2, blobFeetWidth, blobFeetHeight); // Back foot
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.1 + 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT); // Back foot
 	// Arms
-	fill(blobArmColor);
-	rect(gameChar_x - blobBodyWidth / 2 + 20, gameChar_y - blobBodyHeight * 0.5  - blobArmLength * 0.5, blobArmWidth, blobArmLength, 5); // Left arm (slightly lower vertical)
+	fill(BLOB_ARM_COLOR);
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 20, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
-	fill(blobEyeColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.25, gameChar_y - blobBodyHeight * 0.6, blobEyeSize, blobEyeSize);
-	fill(blobPupilColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.25 - 1, gameChar_y - blobBodyHeight * 0.6, blobPupilSize, blobPupilSize); // Pupil looking left
+	fill(BLOB_EYE_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE, BLOB_EYE_SIZE);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.25 - 1, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE); // Pupil looking left
 	// Eyebrow
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(gameChar_x - blobBodyWidth * 0.25, gameChar_y - blobBodyHeight * 0.65, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x - BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_BODY_HEIGHT * 0.65, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (side)
-	stroke(blobMouthColor);
-	line(gameChar_x - blobBodyWidth * 0.3, gameChar_y - blobBodyHeight * 0.35, gameChar_x - blobBodyWidth * 0.1, gameChar_y - blobBodyHeight * 0.35);
+	stroke(BLOB_MOUTH_COLOR);
+	line(gameChar_x - BLOB_BODY_WIDTH * 0.3, gameChar_y - BLOB_BODY_HEIGHT * 0.35, gameChar_x - BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_BODY_HEIGHT * 0.35);
 	
 }
 
@@ -318,30 +318,30 @@ function blobbyWalkingRight()
 	stroke(0);
 	// Blobby - Walking right
 	// Foot back
-	fill(blobFeetColor);
-	ellipse(gameChar_x + blobBodyWidth * 0.25 - 3, gameChar_y - blobFeetHeight / 2, blobFeetWidth * 1.1, blobFeetHeight); // Front foot slightly bigger
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.25 - 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH * 1.1, BLOB_FEET_HEIGHT); // Front foot slightly bigger
 	// Body
-	fill(blobBodyColor);
-	ellipse(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2, blobBodyWidth, blobBodyHeight);
+	fill(BLOB_BODY_COLOR);
+	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT);
 	// Foot forward
-	fill(blobFeetColor);
-	ellipse(gameChar_x + blobBodyWidth * 0.1  - 3, gameChar_y - blobFeetHeight / 2, blobFeetWidth, blobFeetHeight); // Back foot
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1  - 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT); // Back foot
 	// Arms
-	fill(blobArmColor);
-	rect(gameChar_x - blobBodyWidth / 2 + 15, gameChar_y - blobBodyHeight * 0.5  - blobArmLength * 0.5, blobArmWidth, blobArmLength, 5); // Left arm (slightly lower vertical)
+	fill(BLOB_ARM_COLOR);
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 15, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
-	fill(blobEyeColor);
-	ellipse(gameChar_x + blobBodyWidth * 0.25, gameChar_y - blobBodyHeight * 0.6, blobEyeSize, blobEyeSize);
-	fill(blobPupilColor);
-	ellipse(gameChar_x + blobBodyWidth * 0.25 + 1, gameChar_y - blobBodyHeight * 0.6, blobPupilSize, blobPupilSize); // Pupil looking right
+	fill(BLOB_EYE_COLOR);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_EYE_SIZE, BLOB_EYE_SIZE);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.25 + 1, gameChar_y - BLOB_BODY_HEIGHT * 0.6, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE); // Pupil looking right
 	// Eyebrow
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(gameChar_x + blobBodyWidth * 0.25, gameChar_y - blobBodyHeight * 0.65, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar_x + BLOB_BODY_WIDTH * 0.25, gameChar_y - BLOB_BODY_HEIGHT * 0.65, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (side)
-	stroke(blobMouthColor);
-	line(gameChar_x + blobBodyWidth * 0.1, gameChar_y - blobBodyHeight * 0.35, gameChar_x + blobBodyWidth * 0.3, gameChar_y - blobBodyHeight * 0.35);
+	stroke(BLOB_MOUTH_COLOR);
+	line(gameChar_x + BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_BODY_HEIGHT * 0.35, gameChar_x + BLOB_BODY_WIDTH * 0.3, gameChar_y - BLOB_BODY_HEIGHT * 0.35);
 }
 
 function blobbyJumpingLeft()
@@ -349,31 +349,31 @@ function blobbyJumpingLeft()
 	var jumpOffsetLR = 0;
 	// Feet (swept back)
 	stroke(0);
-	fill(blobFeetColor);
-	ellipse(gameChar_x + blobBodyWidth * 0.1, gameChar_y - blobFeetHeight / 2 + jumpOffsetLR + 5, blobFeetWidth * 0.9, blobFeetHeight * 0.9);
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2 + jumpOffsetLR);
+	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR);
 	rotate(-PI / 12.0); // Tilt left
-	fill(blobBodyColor);
-	ellipse(0, 0, blobBodyWidth, blobBodyHeight * 1.05);
+	fill(BLOB_BODY_COLOR);
+	ellipse(0, 0, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.05);
 	// Arms (swept back, inside push/pop)
-	fill(blobArmColor);
-	rect(blobBodyWidth * 0.2 - blobArmLength * 1.2, -blobBodyHeight * 0.1 + 10, blobArmLength * 1.2, blobArmWidth, 5); // Right arm
+	fill(BLOB_ARM_COLOR);
+	rect(BLOB_BODY_WIDTH * 0.2 - BLOB_ARM_LENGTH * 1.2, -BLOB_BODY_HEIGHT * 0.1 + 10, BLOB_ARM_LENGTH * 1.2, BLOB_ARM_WIDTH, 5); // Right arm
 	noStroke();
 	// Eye (looking left)
-	fill(blobEyeColor);
-	ellipse(-blobBodyWidth * 0.25, -blobBodyHeight * 0.1, blobEyeSize * 1.1, blobEyeSize * 1.1);
-	fill(blobPupilColor);
-	ellipse(-blobBodyWidth * 0.25 - 1, -blobBodyHeight * 0.1, blobPupilSize, blobPupilSize);
+	fill(BLOB_EYE_COLOR);
+	ellipse(-BLOB_BODY_WIDTH * 0.25, -BLOB_BODY_HEIGHT * 0.1, BLOB_EYE_SIZE * 1.1, BLOB_EYE_SIZE * 1.1);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(-BLOB_BODY_WIDTH * 0.25 - 1, -BLOB_BODY_HEIGHT * 0.1, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
 	// Eyebrow
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(-blobBodyWidth * 0.25, -blobBodyHeight * 0.2, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(-BLOB_BODY_WIDTH * 0.25, -BLOB_BODY_HEIGHT * 0.2, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (o shape)
 	noStroke();
-	fill(blobMouthColor);
-	ellipse(-blobBodyWidth * 0.4, blobBodyHeight * 0.2, 6, 6);
+	fill(BLOB_MOUTH_COLOR);
+	ellipse(-BLOB_BODY_WIDTH * 0.4, BLOB_BODY_HEIGHT * 0.2, 6, 6);
 
 	pop();
 }
@@ -383,31 +383,31 @@ function blobbyJumpingRight()
 	var jumpOffsetLR = 0;
 	// Feet (swept back)
 	stroke(0);
-	fill(blobFeetColor);
-	ellipse(gameChar_x - blobBodyWidth * 0.1, gameChar_y - blobFeetHeight / 2 + jumpOffsetLR + 5, blobFeetWidth * 0.9, blobFeetHeight * 0.9);
+	fill(BLOB_FEET_COLOR);
+	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR + 5, BLOB_FEET_WIDTH * 0.9, BLOB_FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - blobBodyHeight / 2 - blobFeetHeight / 2 + jumpOffsetLR);
+	translate(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2 + jumpOffsetLR);
 	rotate(PI / 12.0); // Tilt right
-	fill(blobBodyColor);
-	ellipse(0, 0, blobBodyWidth, blobBodyHeight * 1.05);
+	fill(BLOB_BODY_COLOR);
+	ellipse(0, 0, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.05);
 	// Arms (swept back, inside push/pop)
-	fill(blobArmColor);
-	rect(-blobBodyWidth * 0.2, -blobBodyHeight * 0.1 + 10, blobArmLength * 1.2, blobArmWidth, 5); // Left arm
+	fill(BLOB_ARM_COLOR);
+	rect(-BLOB_BODY_WIDTH * 0.2, -BLOB_BODY_HEIGHT * 0.1 + 10, BLOB_ARM_LENGTH * 1.2, BLOB_ARM_WIDTH, 5); // Left arm
 	noStroke();
 	// Eye (looking right)
-	fill(blobEyeColor);
-	ellipse(blobBodyWidth * 0.25, -blobBodyHeight * 0.1, blobEyeSize * 1.1, blobEyeSize * 1.1);
-	fill(blobPupilColor);
-	ellipse(blobBodyWidth * 0.25 + 1, -blobBodyHeight * 0.1, blobPupilSize, blobPupilSize);
+	fill(BLOB_EYE_COLOR);
+	ellipse(BLOB_BODY_WIDTH * 0.25, -BLOB_BODY_HEIGHT * 0.1, BLOB_EYE_SIZE * 1.1, BLOB_EYE_SIZE * 1.1);
+	fill(BLOB_PUPIL_COLOR);
+	ellipse(BLOB_BODY_WIDTH * 0.25 + 1, -BLOB_BODY_HEIGHT * 0.1, BLOB_PUPIL_SIZE, BLOB_PUPIL_SIZE);
 	// Eyebrow
-	stroke(blobPupilColor);
+	stroke(BLOB_PUPIL_COLOR);
 	noFill();
-	arc(blobBodyWidth * 0.25, -blobBodyHeight * 0.2, blobPupilSize * 2, blobPupilSize * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(BLOB_BODY_WIDTH * 0.25, -BLOB_BODY_HEIGHT * 0.2, BLOB_PUPIL_SIZE * 2, BLOB_PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
 	// Mouth (o shape)
 	noStroke();
-	fill(blobMouthColor);
-	ellipse(-blobBodyWidth * -0.4, blobBodyHeight * 0.2, 6, 6);
+	fill(BLOB_MOUTH_COLOR);
+	ellipse(-BLOB_BODY_WIDTH * -0.4, BLOB_BODY_HEIGHT * 0.2, 6, 6);
 	
 	pop();
 }
