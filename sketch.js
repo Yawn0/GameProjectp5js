@@ -14,7 +14,6 @@ const BLOB_PUPIL_COLOR = [0, 0, 0]; // Black
 const BLOB_MOUTH_COLOR = [0, 0, 0]; // Black
 const BLOB_FEET_COLOR = [80, 150, 220]; // Darker blue
 const BLOB_ARM_COLOR = BLOB_FEET_COLOR; // Dark blue
-
 const BLOB_BODY_WIDTH = 40;
 const BLOB_BODY_HEIGHT = 45;
 const BLOB_EYE_SIZE = 8;
@@ -121,36 +120,23 @@ function draw()
 	}
 }
 
-function getDirectionalKey(key, keyCode){
-	if(keyCode == 65
-		|| keyCode == LEFT_ARROW
-		|| key == 'a'
-		|| key == 'A') return LEFT_ARROW;
-	else if(keyCode == 68
-		|| keyCode == RIGHT_ARROW
-		|| key == 'd'
-		|| key == 'D') return RIGHT_ARROW;
-	else if(keyCode == 87
-		|| keyCode == UP_ARROW
-		|| key == 'w'
-		|| key == 'W'
-		|| keyCode == 32
-		|| key == 'space'
-		|| key == 'SPACE') return UP_ARROW;
+function getDirectionalKey(keyCode)
+{
+	if (keyCode == 65 || keyCode == LEFT_ARROW) return LEFT_ARROW;
+	if (keyCode == 68 || keyCode == RIGHT_ARROW) return RIGHT_ARROW;
+	if (keyCode == 87 || keyCode == UP_ARROW || keyCode == 32) return UP_ARROW;
 	return '';
 }
 
 function keyPressed()
 {
-	if (_isPlummeting)
-		return;
-	
-	let directionKey = getDirectionalKey(key, keyCode);
-	
-	_isLeft = directionKey == LEFT_ARROW ? true : _isLeft;
-	_isRight = directionKey == RIGHT_ARROW ? true : _isRight;
-	
-	if ((directionKey == UP_ARROW) && !_isFalling)
+	if (_isPlummeting) return;
+
+	let directionKey = getDirectionalKey(keyCode);
+
+	if (directionKey == LEFT_ARROW) _isLeft = true;
+	else if (directionKey == RIGHT_ARROW) _isRight = true;
+	else if (directionKey == UP_ARROW && !_isFalling)
 	{
 		gameChar_y -= 100;
 	}
@@ -158,13 +144,12 @@ function keyPressed()
 
 function keyReleased()
 {
-	if (_isPlummeting)
-		return;
+	if (_isPlummeting) return;
 
-	let directionKey = getDirectionalKey(key, keyCode);
+	let directionKey = getDirectionalKey(keyCode);
 
-	_isLeft = directionKey == LEFT_ARROW ? false : _isLeft;
-	_isRight = directionKey == RIGHT_ARROW ? false : _isRight;
+	if (directionKey == LEFT_ARROW) _isLeft = false;
+	else if (directionKey == RIGHT_ARROW) _isRight = false;
 }
 
 function drawCharacter()
@@ -476,45 +461,42 @@ function drawCanyon(canyon, _floorPos_y)
 
 function generateClouds(cloudsCoordinates)
 {
-	return cloudsCoordinates.map(function (cloud)
-	{
-		return [
-			{
-				x: cloud.x_pos,
-				y: cloud.y_pos * random(0.5, 0.9),
-				width: 100 * random(0.8, 1.2),
-				height: 60
-			},
-			{
-				x: cloud.x_pos + 40,
-				y: cloud.y_pos * random(0.5, 0.9),
-				width: 100 * random(0.8, 1.2),
-				height: 70
-			},
-			{
-				x: cloud.x_pos + 80,
-				y: cloud.y_pos * random(0.5, 0.9),
-				width: 100 * random(0.8, 1.2),
-				height: 60
-			},
-			{
-				x: cloud.x_pos + 30,
-				y: cloud.y_pos * random(0.5, 0.9),
-				width: 100 * random(0.8, 1.2),
-				height: 80
-			},
-		];
-	});
+    let clouds = [];
+	for (let i = 0; i < cloudsCoordinates.length; i++) {
+		let cloud = cloudsCoordinates[i];
+		clouds.push({
+			x: cloud.x_pos,
+			y: cloud.y_pos * random(0.5, 0.9),
+			width: 100 * random(0.8, 1.2),
+			height: 60
+		});
+		clouds.push({
+			x: cloud.x_pos + 40,
+			y: cloud.y_pos * random(0.5, 0.9),
+			width: 100 * random(0.8, 1.2),
+			height: 70
+		});
+		clouds.push({
+			x: cloud.x_pos + 80,
+			y: cloud.y_pos * random(0.5, 0.9),
+			width: 100 * random(0.8, 1.2),
+			height: 60
+		});
+		clouds.push({
+			x: cloud.x_pos + 30,
+			y: cloud.y_pos * random(0.5, 0.9),
+			width: 100 * random(0.8, 1.2),
+			height: 80
+		});
+	}
+    return clouds;
 }
 
 function drawCloud(cloud)
 {
-	fill(255);
-	noStroke();
-	for (var i = 0; i < cloud.length; i++)
-	{
-		ellipse(cloud[i].x, cloud[i].y, cloud[i].width, cloud[i].height);
-	}
+    fill(255);
+    noStroke();
+    ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
 }
 
 function drawMountain(mountain, floorPos_y)
