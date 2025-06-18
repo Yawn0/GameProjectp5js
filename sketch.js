@@ -26,24 +26,17 @@ const blobArmLength = 10;
 var blobDefaultEyebrowStart;
 var blobDefaultEyebrowStop;
 
+var _canyon;
+var _collectible;
+var _trees_x;
+var _cloudsCoordinates;
+var _clouds;
+var _mountains;
 
-var trees_x;
-var canyon;
-var collectible;
-var mountain;
-var cloud;
-
-var isLeft;
-var isRight;
-var isFalling;
-var isPlummeting;
-
-
-// function mousePressed()
-// {
-// 	gameChar_x = mouseX;
-// 	gameChar_y = mouseY;
-// }
+var _isLeft;
+var _isRight;
+var _isFalling;
+var _isPlummeting;
 
 function setup()
 {
@@ -73,15 +66,25 @@ function setup()
 		width: 80
 	};
 
-	mountain = {
-		x_pos: 0,
-		width: 100
-	}
+	_trees_x = [85, 300, 450, 700, 850];
 
-	cloud = {
-		x_pos: 0,
-		width: 100
-	}
+	_cloudsCoordinates = [
+		{ x_pos: 100, y_pos: 100},
+		{ x_pos: 200, y_pos: 80},
+		{ x_pos: 500, y_pos: 120},
+		{ x_pos: 600, y_pos: 90},
+		{ x_pos: 800, y_pos: 100},
+		{ x_pos: 1000, y_pos: 110}
+	]
+
+	_clouds = generateClouds(_cloudsCoordinates);
+
+	_mountains = [
+		{ x_pos: 0, width: 1 },
+		{ x_pos: 600, width: 1.1 },
+		{ x_pos: 450, width: 1.2 },
+		{ x_pos: 300, width: 0.6 },
+	]
 }
 
 function draw()
@@ -92,15 +95,19 @@ function draw()
 	fill(0,155,0);
 	rect(0, floorPos_y, width, height - floorPos_y); //draw some green ground
 	
-	drawCanyon();
-	drawMountain();
-	drawCloud();
-
-	trees_x = [100, 300, 500, 700, 900];
-
-	for (var i = 0; i < trees_x.length; i++)
+	drawCanyon(_canyon, _floorPos_y);
+	
+	for (var i = 0; i < _mountains.length; i++)
 	{
-		drawTree(trees_x[i], floorPos_y);
+		drawMountain(_mountains[i], _floorPos_y);
+	}
+	for (var i = 0; i < _trees_x.length; i++)
+	{
+		drawTree(_trees_x[i], _floorPos_y);
+	}
+	for (var i = 0; i < _clouds.length; i++)
+	{
+		drawCloud(_clouds[i]);
 	}
 
 	if(collectible.isFound == false){
@@ -439,18 +446,48 @@ function drawCanyon(canyon, _floorPos_y)
 	endShape();
 }
 
+
+function generateClouds(cloudsCoordinates)
+{
+	return cloudsCoordinates.map(function (cloud)
+	{
+		return [
+			{
+				x: cloud.x_pos,
+				y: cloud.y_pos * random(0.5, 0.9),
+				width: 100 * random(0.8, 1.2),
+				height: 60
+			},
+			{
+				x: cloud.x_pos + 40,
+				y: cloud.y_pos * random(0.5, 0.9),
+				width: 100 * random(0.8, 1.2),
+				height: 70
+			},
+			{
+				x: cloud.x_pos + 80,
+				y: cloud.y_pos * random(0.5, 0.9),
+				width: 100 * random(0.8, 1.2),
+				height: 60
+			},
+			{
+				x: cloud.x_pos + 30,
+				y: cloud.y_pos * random(0.5, 0.9),
+				width: 100 * random(0.8, 1.2),
+				height: 80
+			},
+		];
+	});
+}
+
 function drawCloud(cloud)
 {
 	fill(255);
-	// ellipse(x, y, width, height);
-	ellipse(cloud.x_pos, cloud.y_pos * random(0.5, 0.9)
-		, 100 * random(0.8, 1.2), 60);
-	ellipse(cloud.x_pos + 40, cloud.y_pos * random(0.5, 0.9)
-		, 100 * random(0.8, 1.2), 70);
-	ellipse(cloud.x_pos + 80, cloud.y_pos * random(0.5, 0.9)
-		, 100 * random(0.8, 1.2), 60);
-	ellipse(cloud.x_pos + 30, cloud.y_pos * random(0.5, 0.9)
-		, 100 * random(0.8, 1.2), 80);
+	noStroke();
+	for (var i = 0; i < cloud.length; i++)
+	{
+		ellipse(cloud[i].x, cloud[i].y, cloud[i].width, cloud[i].height);
+	}
 }
 
 function drawMountain(mountain, floorPos_y)
