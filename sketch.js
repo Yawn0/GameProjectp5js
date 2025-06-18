@@ -3,9 +3,6 @@
 The Game Project
 
 */
-var _floorPos_y;
-var gameChar_x;
-var gameChar_y;
 
 // --- Game Constants ---
 const CANVAS_WIDTH = 1024;
@@ -13,7 +10,7 @@ const CANVAS_HEIGHT = 576;
 const FLOOR_HEIGHT_RATIO = 3 / 4;
 const JUMP_HEIGHT = 100;
 const GRAVITY_SPEED = 3; // Blobby falls at this speed
-const PLUMMET_SPEED = 5; // Blobby falls faster when plummeting
+const PLUMMET_SPEED = 6; // Blobby falls faster when plummeting
 
 const BLOBBY = {
     COLORS: {
@@ -39,9 +36,14 @@ const BLOBBY = {
     EYEBROW_STOP: Math.PI * 2 - 0.3
 };
 
-var blobDefaultEyebrowStart;
-var blobDefaultEyebrowStop;
+// --- Game State Variables ---
+var _floorPos_y;
+let _cameraPosX;
 
+// Game Character Object
+let gameChar;
+
+// Scenery Elements (objects to hold their properties)
 var _canyon;
 var _collectible;
 var _trees_x;
@@ -49,31 +51,23 @@ var _cloudsCoordinates;
 var _clouds;
 var _mountains;
 
-var _isLeft;
-var _isRight;
-var _isFalling;
-var _isPlummeting;
-
-var cameraPosX;
-
 function setup()
 {
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 
-	cameraPosX = 0;
-
 	_floorPos_y = height * FLOOR_HEIGHT_RATIO
+	_cameraPosX = 0;
 
-	gameChar_x = width / 2;
-	gameChar_y = _floorPos_y;
-
-	_isLeft = false;
-	_isRight = false;
-	_isFalling = false;
-	_isPlummeting = false;
-
-	blobDefaultEyebrowStart = PI + 0.3;
-	blobDefaultEyebrowStop = TWO_PI - 0.3;
+        // Initialize game character
+    gameChar = {
+        x: width / 2,
+        y: _floorPos_y,
+        isLeft: false,
+        isRight: false,
+        isFalling: false,
+        isPlummeting: false,
+        currentAnimation: 'standingFront' // Default animation state
+    };
 
 	_collectible = {
 		x_pos: 100,
@@ -110,14 +104,14 @@ function setup()
 
 function draw()
 {
-	cameraPosX += _isLeft ? -BLOBBY.SPEED : _isRight ? BLOBBY.SPEED : 0;
+	_cameraPosX += gameChar.isLeft ? -BLOBBY.SPEED : gameChar.isRight ? BLOBBY.SPEED : 0;
 
 	background(100, 155, 255);
 
 	drawGround();
 
 	push();
-	translate(-cameraPosX, 0)
+	translate(-_cameraPosX, 0)
 
 	drawScenery();
 
@@ -129,7 +123,7 @@ function draw()
 	}
 	pop();
 
-	if (dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20)
+	if (dist(gameChar.x, gameChar.y, _collectible.x_pos, _collectible.y_pos) < 20)
 	{
 		_collectible.isFound = true;
 	}
@@ -145,48 +139,48 @@ function getDirectionalKey(keyCode)
 
 function keyPressed()
 {
-	if (_isPlummeting) return;
+	if (gameChar.isPlummeting) return;
 
 	let directionKey = getDirectionalKey(keyCode);
 
-	if (directionKey == LEFT_ARROW) _isLeft = true;
-	else if (directionKey == RIGHT_ARROW) _isRight = true;
-	else if (directionKey == UP_ARROW && !_isFalling)
+	if (directionKey == LEFT_ARROW) gameChar.isLeft = true;
+	else if (directionKey == RIGHT_ARROW) gameChar.isRight = true;
+	else if (directionKey == UP_ARROW && !gameChar.isFalling)
 	{
-		gameChar_y -= JUMP_HEIGHT;
+		gameChar.y -= JUMP_HEIGHT;
 	}
 }
 
 function keyReleased()
 {
-	if (_isPlummeting) return;
+	if (gameChar.isPlummeting) return;
 
 	let directionKey = getDirectionalKey(keyCode);
 
-	if (directionKey == LEFT_ARROW) _isLeft = false;
-	else if (directionKey == RIGHT_ARROW) _isRight = false;
+	if (directionKey == LEFT_ARROW) gameChar.isLeft = false;
+	else if (directionKey == RIGHT_ARROW) gameChar.isRight = false;
 }
 
 function drawCharacter()
 {
 
-	if (_isLeft && _isFalling)
+	if (gameChar.isLeft && gameChar.isFalling)
 	{
 		blobbyJumpingLeft();
 	}
-	else if (_isRight && _isFalling)
+	else if (gameChar.isRight && gameChar.isFalling)
 	{
 		blobbyJumpingRight();
 	}
-	else if (_isLeft)
+	else if (gameChar.isLeft)
 	{
 		blobbyWalkingLeft();
 	}
-	else if (_isRight)
+	else if (gameChar.isRight)
 	{
 		blobbyWalkingRight();
 	}
-	else if (_isFalling || _isPlummeting)
+	else if (gameChar.isFalling || gameChar.isPlummeting)
 	{
 		blobbyJumping();
 	}
@@ -195,37 +189,37 @@ function drawCharacter()
 		blobbyStandingFront();
 	}
 
-	if (_isLeft)
+	if (gameChar.isLeft)
 	{
-		gameChar_x -= BLOBBY.SPEED;
+		gameChar.x -= BLOBBY.SPEED;
 	}
-	else if (_isRight)
+	else if (gameChar.isRight)
 	{
-		gameChar_x += BLOB_SPEED;
+		gameChar.x += BLOBBY.SPEED;
 	}
 
-	if (gameChar_y < _floorPos_y)
+	if (gameChar.y < _floorPos_y)
 	{
-		gameChar_y += BLOBBY.SPEED;
-		_isFalling = true;
+		gameChar.y += GRAVITY_SPEED;
+		gameChar.isFalling = true;
 	}
 	else
 	{
-		_isFalling = false;
+		gameChar.isFalling = false;
 	}
 
-	if (gameChar_x < _canyon.x_pos + _canyon.width
-		&& gameChar_x > _canyon.x_pos
-		&& gameChar_y >= _floorPos_y)
+	if (gameChar.x < _canyon.x_pos + _canyon.width
+		&& gameChar.x > _canyon.x_pos
+		&& gameChar.y >= _floorPos_y)
 	{
-		_isPlummeting = true;
+		gameChar.isPlummeting = true;
 	}
 
-	if (_isPlummeting)
+	if (gameChar.isPlummeting)
 	{
-		gameChar_y += 5;
-		_isLeft = false;
-		_isRight = false;
+		gameChar.y += PLUMMET_SPEED;
+		gameChar.isLeft = false;
+		gameChar.isRight = false;
 	}
 }
 
@@ -234,32 +228,32 @@ function blobbyStandingFront()
 	// Feet
 	stroke(0);
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
 	// Body
 	fill(BLOBBY.COLORS.BODY);
-	ellipse(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
+	ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
 	// Arms
 	fill(BLOBBY.COLORS.ARM);
-	rect(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.4, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (vertical)
-	rect(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH / 2 - BLOBBY.DIMENSIONS.ARM_WIDTH, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.4, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Right arm (vertical)
+	rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.4, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (vertical)
+	rect(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH / 2 - BLOBBY.DIMENSIONS.ARM_WIDTH, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.4, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Right arm (vertical)
 	noStroke();
 	// Eyes
 	fill(BLOBBY.COLORS.EYE);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
 	fill(BLOBBY.COLORS.PUPIL);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
 	// Eyebrows
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
-	arc(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
+	arc(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth
 	stroke(BLOBBY.COLORS.MOUTH);
 	noFill();
-	arc(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, 10, 5, 0, PI);
+	arc(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, 10, 5, 0, PI);
 }
 
 function blobbyJumping()
@@ -267,32 +261,32 @@ function blobbyJumping()
 	// Feet (tucked in)
 	stroke(0);
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.15, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.8, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.8);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.15, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.8, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.8);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.15, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.8, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.8);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.15, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.8, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.8);
 	// Body
 	fill(BLOBBY.COLORS.BODY);
-	ellipse(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT * 1.1); // Slightly stretched
+	ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT * 1.1); // Slightly stretched
 	// Arms
 	fill(BLOBBY.COLORS.ARM);
-	rect(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
-	rect(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH / 2 - BLOBBY.DIMENSIONS.ARM_WIDTH - 2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Right arm (slightly lower vertical)
+	rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH / 2 - BLOBBY.DIMENSIONS.ARM_WIDTH - 2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Right arm (slightly lower vertical)
 	noStroke();
 	// Eyes (wide)
 	fill(BLOBBY.COLORS.EYE);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2, BLOBBY.DIMENSIONS.EYE_SIZE * 1.2);
 	fill(BLOBBY.COLORS.PUPIL);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE);
 	// Eyebrows
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.7, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
-	arc(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.7, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.7, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
+	arc(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.2, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.7, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth (o shape)
 	noStroke();
 	fill(BLOBBY.COLORS.MOUTH);
-	ellipse(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, 8, 8);
+	ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, 8, 8);
 }
 
 function blobbyWalkingLeft()
@@ -300,29 +294,29 @@ function blobbyWalkingLeft()
 	// Blobby - Walking left
 	stroke(0);
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 3, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Front foot slightly bigger
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Front foot slightly bigger
 	// Body
 	fill(BLOBBY.COLORS.BODY);
-	ellipse(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
+	ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
 	// Feet (one forward, one back)
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 + 3, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Back foot
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Back foot
 	// Arms
 	fill(BLOBBY.COLORS.ARM);
-	rect(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 20, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 20, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
 	fill(BLOBBY.COLORS.EYE);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
 	fill(BLOBBY.COLORS.PUPIL);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 1, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE); // Pupil looking left
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 1, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE); // Pupil looking left
 	// Eyebrow
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth (side)
 	stroke(BLOBBY.COLORS.MOUTH);
-	line(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.3, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35);
+	line(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.3, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35);
 
 }
 
@@ -332,29 +326,29 @@ function blobbyWalkingRight()
 	// Blobby - Walking right
 	// Foot back
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 3, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Front foot slightly bigger
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Front foot slightly bigger
 	// Body
 	fill(BLOBBY.COLORS.BODY);
-	ellipse(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
+	ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
 	// Foot forward
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 - 3, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Back foot
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT); // Back foot
 	// Arms
 	fill(BLOBBY.COLORS.ARM);
-	rect(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 15, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 15, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
 	fill(BLOBBY.COLORS.EYE);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.EYE_SIZE, BLOBBY.DIMENSIONS.EYE_SIZE);
 	fill(BLOBBY.COLORS.PUPIL);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 1, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE); // Pupil looking right
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 1, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.6, BLOBBY.DIMENSIONS.PUPIL_SIZE, BLOBBY.DIMENSIONS.PUPIL_SIZE); // Pupil looking right
 	// Eyebrow
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.65, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth (side)
 	stroke(BLOBBY.COLORS.MOUTH);
-	line(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.3, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35);
+	line(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35, gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.3, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.35);
 }
 
 function blobbyJumpingLeft()
@@ -362,10 +356,10 @@ function blobbyJumpingLeft()
 	// Feet (swept back)
 	stroke(0);
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
+	ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2);
+	translate(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2);
 	rotate(-PI / 12.0); // Tilt left
 	fill(BLOBBY.COLORS.BODY);
 	ellipse(0, 0, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT * 1.05);
@@ -381,7 +375,7 @@ function blobbyJumpingLeft()
 	// Eyebrow
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(-BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, -BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(-BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, -BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth (o shape)
 	noStroke();
 	fill(BLOBBY.COLORS.MOUTH);
@@ -395,10 +389,10 @@ function blobbyJumpingRight()
 	// Feet (swept back)
 	stroke(0);
 	fill(BLOBBY.COLORS.FEET);
-	ellipse(gameChar_x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar_y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
+	ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
 	// Body (slightly tilted)
 	push();
-	translate(gameChar_x, gameChar_y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2);
+	translate(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2);
 	rotate(PI / 12.0); // Tilt right
 	fill(BLOBBY.COLORS.BODY);
 	ellipse(0, 0, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT * 1.05);
@@ -414,7 +408,7 @@ function blobbyJumpingRight()
 	// Eyebrow
 	stroke(BLOBBY.COLORS.PUPIL);
 	noFill();
-	arc(BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, -BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, blobDefaultEyebrowStart, blobDefaultEyebrowStop);
+	arc(BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, -BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.DIMENSIONS.PUPIL_SIZE * 2, BLOBBY.EYEBROW_START, BLOBBY.EYEBROW_STOP);
 	// Mouth (o shape)
 	noStroke();
 	fill(BLOBBY.COLORS.MOUTH);
