@@ -47,10 +47,10 @@ function setup()
 	createCanvas(1024, 576);
 
 	cameraPosX = 0;
-	
-	_floorPos_y = height * 3/4;
 
-	gameChar_x = width/2;
+	_floorPos_y = height * 3 / 4;
+
+	gameChar_x = width / 2;
 	gameChar_y = _floorPos_y;
 
 	_isLeft = false;
@@ -58,8 +58,8 @@ function setup()
 	_isFalling = false;
 	_isPlummeting = false;
 
-	blobDefaultEyebrowStart= PI + 0.3;
-	blobDefaultEyebrowStop= TWO_PI - 0.3;
+	blobDefaultEyebrowStart = PI + 0.3;
+	blobDefaultEyebrowStop = TWO_PI - 0.3;
 
 	_collectible = {
 		x_pos: 100,
@@ -76,12 +76,12 @@ function setup()
 	_trees_x = [85, 300, 450, 700, 850];
 
 	_cloudsCoordinates = [
-		{ x_pos: 100, y_pos: 100},
-		{ x_pos: 200, y_pos: 80},
-		{ x_pos: 500, y_pos: 120},
-		{ x_pos: 600, y_pos: 90},
-		{ x_pos: 800, y_pos: 100},
-		{ x_pos: 1000, y_pos: 110}
+		{ x_pos: 100, y_pos: 100 },
+		{ x_pos: 200, y_pos: 80 },
+		{ x_pos: 500, y_pos: 120 },
+		{ x_pos: 600, y_pos: 90 },
+		{ x_pos: 800, y_pos: 100 },
+		{ x_pos: 1000, y_pos: 110 }
 	]
 
 	_clouds = generateClouds(_cloudsCoordinates);
@@ -96,7 +96,7 @@ function setup()
 
 function draw()
 {
-	cameraPosX += (_isLeft ? -BLOB_SPEED : 0) + (_isRight ? BLOB_SPEED : 0);
+	cameraPosX += _isLeft ? -BLOB_SPEED : _isRight ? BLOB_SPEED : 0;
 
 	background(100, 155, 255);
 
@@ -109,32 +109,34 @@ function draw()
 
 	drawCharacter();
 
-	if(_collectible.isFound == false){
+	if (_collectible.isFound == false)
+	{
 		drawCollectible(_collectible);
 	}
 	pop();
 
 
-	if(dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20){
+	if (dist(gameChar_x, gameChar_y, _collectible.x_pos, _collectible.y_pos) < 20)
+	{
 		_collectible.isFound = true;
 	}
 }
 
 function keyPressed()
 {
-	if(_isPlummeting)
+	if (_isPlummeting)
 	{
 		return;
 	}
-	if(key == 'a')
+	if (key == 'a')
 	{
 		_isLeft = true;
 	}
-	else if(key == 'd')
+	else if (key == 'd')
 	{
 		_isRight = true;
 	}
-	else if((keyCode == 32 || key == 'w') && !_isFalling)
+	else if ((keyCode == 32 || key == 'w') && !_isFalling)
 	{
 		gameChar_y -= 100;
 	}
@@ -142,39 +144,40 @@ function keyPressed()
 
 function keyReleased()
 {
-	if(_isPlummeting)
+	if (_isPlummeting)
 	{
 		return;
 	}
-	if(key == 'a')
+	if (key == 'a')
 	{
 		_isLeft = false;
 	}
-	else if(key == 'd')
+	else if (key == 'd')
 	{
 		_isRight = false;
 	}
 }
 
-function drawCharacter(){
+function drawCharacter()
+{
 
-	if(_isLeft && _isFalling)
+	if (_isLeft && _isFalling)
 	{
 		blobbyJumpingLeft();
 	}
-	else if(_isRight && _isFalling)
+	else if (_isRight && _isFalling)
 	{
 		blobbyJumpingRight();
 	}
-	else if(_isLeft)
+	else if (_isLeft)
 	{
 		blobbyWalkingLeft();
 	}
-	else if(_isRight)
+	else if (_isRight)
 	{
 		blobbyWalkingRight();
 	}
-	else if(_isFalling || _isPlummeting)
+	else if (_isFalling || _isPlummeting)
 	{
 		blobbyJumping();
 	}
@@ -183,16 +186,16 @@ function drawCharacter(){
 		blobbyStandingFront();
 	}
 
-	if(_isLeft)
+	if (_isLeft)
 	{
 		gameChar_x -= BLOB_SPEED;
 	}
-	else if(_isRight)
+	else if (_isRight)
 	{
 		gameChar_x += BLOB_SPEED;
 	}
 
-	if(gameChar_y < _floorPos_y)
+	if (gameChar_y < _floorPos_y)
 	{
 		gameChar_y += BLOB_SPEED;
 		_isFalling = true;
@@ -202,13 +205,15 @@ function drawCharacter(){
 		_isFalling = false;
 	}
 
-	if(gameChar_x < _canyon.x_pos + _canyon.width 
+	if (gameChar_x < _canyon.x_pos + _canyon.width
 		&& gameChar_x > _canyon.x_pos
-		&& gameChar_y >= _floorPos_y){
+		&& gameChar_y >= _floorPos_y)
+	{
 		_isPlummeting = true;
 	}
 
-	if(_isPlummeting){
+	if (_isPlummeting)
+	{
 		gameChar_y += 5;
 		_isLeft = false;
 		_isRight = false;
@@ -260,7 +265,7 @@ function blobbyJumping()
 	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT * 1.1); // Slightly stretched
 	// Arms
 	fill(BLOB_ARM_COLOR);
-	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5 - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	rect(gameChar_x + BLOB_BODY_WIDTH / 2 - BLOB_ARM_WIDTH - 2, gameChar_y - BLOB_BODY_HEIGHT * 0.5 - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Right arm (slightly lower vertical)
 	noStroke();
 	// Eyes (wide)
@@ -295,7 +300,7 @@ function blobbyWalkingLeft()
 	ellipse(gameChar_x - BLOB_BODY_WIDTH * 0.1 + 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT); // Back foot
 	// Arms
 	fill(BLOB_ARM_COLOR);
-	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 20, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 20, gameChar_y - BLOB_BODY_HEIGHT * 0.5 - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
 	fill(BLOB_EYE_COLOR);
@@ -309,7 +314,7 @@ function blobbyWalkingLeft()
 	// Mouth (side)
 	stroke(BLOB_MOUTH_COLOR);
 	line(gameChar_x - BLOB_BODY_WIDTH * 0.3, gameChar_y - BLOB_BODY_HEIGHT * 0.35, gameChar_x - BLOB_BODY_WIDTH * 0.1, gameChar_y - BLOB_BODY_HEIGHT * 0.35);
-	
+
 }
 
 function blobbyWalkingRight()
@@ -324,10 +329,10 @@ function blobbyWalkingRight()
 	ellipse(gameChar_x, gameChar_y - BLOB_BODY_HEIGHT / 2 - BLOB_FEET_HEIGHT / 2, BLOB_BODY_WIDTH, BLOB_BODY_HEIGHT);
 	// Foot forward
 	fill(BLOB_FEET_COLOR);
-	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1  - 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT); // Back foot
+	ellipse(gameChar_x + BLOB_BODY_WIDTH * 0.1 - 3, gameChar_y - BLOB_FEET_HEIGHT / 2, BLOB_FEET_WIDTH, BLOB_FEET_HEIGHT); // Back foot
 	// Arms
 	fill(BLOB_ARM_COLOR);
-	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 15, gameChar_y - BLOB_BODY_HEIGHT * 0.5  - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
+	rect(gameChar_x - BLOB_BODY_WIDTH / 2 + 15, gameChar_y - BLOB_BODY_HEIGHT * 0.5 - BLOB_ARM_LENGTH * 0.5, BLOB_ARM_WIDTH, BLOB_ARM_LENGTH, 5); // Left arm (slightly lower vertical)
 	noStroke();
 	// Eye (one visible, side view)
 	fill(BLOB_EYE_COLOR);
@@ -405,20 +410,21 @@ function blobbyJumpingRight()
 	noStroke();
 	fill(BLOB_MOUTH_COLOR);
 	ellipse(-BLOB_BODY_WIDTH * -0.4, BLOB_BODY_HEIGHT * 0.2, 6, 6);
-	
+
 	pop();
 }
 
-function drawGround(){
+function drawGround()
+{
 	noStroke();
-	fill(0,155,0);
+	fill(0, 155, 0);
 	rect(0, _floorPos_y, width, height - _floorPos_y); //the ground
 }
 
 function drawScenery()
 {
 	drawCanyon(_canyon, _floorPos_y);
-	
+
 	for (var i = 0; i < _mountains.length; i++)
 	{
 		drawMountain(_mountains[i], _floorPos_y);
@@ -505,13 +511,13 @@ function drawCloud(cloud)
 function drawMountain(mountain, floorPos_y)
 {
 	noStroke();
-	 // main part of the mountain
+	// main part of the mountain
 	fill(120, 120, 120);
 	//triangle(x1, y1, x2, y2, x3, y3);
 	triangle(mountain.x_pos, floorPos_y
 		, mountain.x_pos + (310 * mountain.width), 150
 		, mountain.x_pos + (620 * mountain.width), floorPos_y);
-	 // inner part
+	// inner part
 	fill(150, 150, 150);
 	triangle(mountain.x_pos + (40 * mountain.width), floorPos_y
 		, mountain.x_pos + (310 * mountain.width), 200
@@ -530,7 +536,7 @@ function drawTree(treePos_x, treePos_y)
 	fill(100, 160, 35);
 	triangle(treePos_x - 40, treePos_y - 60
 		, treePos_x + 20, treePos_y - 120
-		, treePos_x + 80, treePos_y  - 60);
+		, treePos_x + 80, treePos_y - 60);
 	fill(100, 170, 35);
 	triangle(treePos_x - 30, treePos_y - 95
 		, treePos_x + 20, treePos_y - 150
