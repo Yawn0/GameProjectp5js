@@ -13,6 +13,8 @@ const JUMP_HEIGHT = 100;
 const GRAVITY_SPEED = 3; // Blobby falls at this speed
 const PLUMMET_SPEED = 6; // Blobby falls faster when plummeting
 
+// Used objects where possible for clarity and ease of maintenance
+
 // Blobby character appearance and movement constants
 const BLOBBY = {
     COLORS: {
@@ -86,7 +88,10 @@ function setup()
     // Tree positions
     _trees_x = [85, 300, 450, 700, 850];
 
-    // Cloud coordinates (for cloud generation)
+    // Two different variables used for clouds to create them randomly:
+    // 1. Cloud coordinates (for cloud generation)
+    // 2. Generate clouds from coordinates using random sizes
+    // So in this case there will be 6 clouds generated
     _cloudsCoordinates = [
         { x_pos: 100, y_pos: 100 },
         { x_pos: 200, y_pos: 80 },
@@ -95,8 +100,6 @@ function setup()
         { x_pos: 800, y_pos: 100 },
         { x_pos: 1000, y_pos: 110 }
     ]
-
-    // Generate clouds from coordinates
     _clouds = generateClouds(_cloudsCoordinates);
 
     // Mountain objects
@@ -109,6 +112,7 @@ function setup()
 }
 
 // Main game loop: updates camera, draws world, handles collectible logic
+// The logic is split into functions for clarity and ease of maintenance
 function draw()
 {
     _cameraPosX += _gameChar.isLeft ? -BLOBBY.SPEED
@@ -491,6 +495,8 @@ function drawCanyon(canyon, _floorPos_y)
 // --- Cloud Generation and Drawing ---
 
 // Generates cloud objects from coordinates
+// Each cloud is composed of multiple ellipses to create a fluffy appearance
+// Uses random sizes for variation
 function generateClouds(cloudsCoordinates)
 {
     let clouds = [];
