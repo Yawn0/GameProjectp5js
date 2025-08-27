@@ -45,6 +45,7 @@ const BLOBBY = {
 var _floorPos_y;
 var _cameraPosX;
 var _gameChar;
+var _gameScore;
 
 var _trees_x;
 var _cloudsCoordinates;
@@ -52,6 +53,7 @@ var _clouds;
 var _mountains;
 var _collectables = [];
 var _canyons = [];
+var _flagPole;
 
 // Initializes game state and objects
 function setup()
@@ -70,7 +72,9 @@ function setup()
         isFalling: false,
         isPlummeting: false,
     };
-    
+
+    _gameScore = 0;
+
     generateCollectables();
 
     generateCanyons();
@@ -99,6 +103,15 @@ function setup()
         { x_pos: 450, width: 1.2 },
         { x_pos: 300, width: 0.6 },
     ]
+
+    _flagPole = {
+        x_pos: 1300,
+        y_pos: _floorPos_y,
+        width: 10,
+        height: 100,
+        isReached: false,
+    }
+
 }
 
 // Main game loop: updates camera, draws world, handles collectible logic
@@ -125,15 +138,23 @@ function draw()
         checkCollectable(_collectables[i]);
         if (_collectables[i].isFound) {
             _collectables.splice(i, 1);
-            console.log("Collectable found");
         }
     }
+
+    drawGameScore();
+
+    drawFinishLine();
+
+    // draw x position of character
+    fill(0);
+    textSize(32);
+    text("x: " + _gameChar.x, _cameraPosX + 20, 100);
 
     pop();
 }
 
 function generateCanyons(){
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
         let canyon = {
             x_pos: random(width),
             width: 80
@@ -143,7 +164,7 @@ function generateCanyons(){
 }
 
 function generateCollectables(){
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
         let collectible = {
             x_pos: random(width),
             y_pos: _floorPos_y,
@@ -247,6 +268,26 @@ function drawCharacter()
 		_gameChar.isLeft = false;
 		_gameChar.isRight = false;
 	}
+}
+
+function drawGameScore()
+{
+    fill(0);
+    textSize(32);
+    text("Score: " + _gameScore, _cameraPosX + 20, 50);
+}
+
+function drawFinishLine()
+{
+    fill(0);
+    if (_flagPole.isReached)
+    {
+        fill(200);
+    }
+    else{
+        checkFinishLine();
+    }
+    rect(_flagPole.x_pos, _flagPole.y_pos, _flagPole.width, -_flagPole.height);
 }
 
 // --- Blobby Drawing Functions ---
@@ -483,6 +524,7 @@ function checkCollectable(t_collectible)
     if (dist(_gameChar.x, _gameChar.y, t_collectible.x_pos, t_collectible.y_pos) < 20)
     {
         t_collectible.isFound = true;
+        _gameScore++;
     }
 }
 
@@ -510,6 +552,18 @@ function checkCanyon(t_canyon)
         
 	if (isOverCanyon)
 		_gameChar.isPlummeting = true;
+}
+
+// Check if character is over the finish line
+function checkFinishLine()
+{
+    const isOverFinishLine = abs(_gameChar.x - _flagPole.x_pos) < 10
+        && abs(_gameChar.y - _flagPole.y_pos) < 10;
+
+    if (isOverFinishLine)
+    {
+        _flagPole.isReached = true;
+    }
 }
 
 // Draws the canyon
