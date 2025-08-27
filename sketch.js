@@ -46,12 +46,12 @@ var _floorPos_y;
 var _cameraPosX;
 var _gameChar;
 
-var _canyon;
 var _trees_x;
 var _cloudsCoordinates;
 var _clouds;
 var _mountains;
-var _collectible;
+var _collectables = [];
+var _canyons = [];
 
 // Initializes game state and objects
 function setup()
@@ -70,20 +70,10 @@ function setup()
         isFalling: false,
         isPlummeting: false,
     };
+    
+    generateCollectables();
 
-    // Initialize collectible object
-    _collectible = {
-        x_pos: 100,
-        y_pos: _floorPos_y,
-        size: 40,
-        isFound: false
-    };
-
-    // Initialize canyon object
-    _canyon = {
-        x_pos: 150,
-        width: 80
-    };
+    generateCanyons();
 
     // Tree positions
     _trees_x = [85, 300, 450, 700, 850];
@@ -130,17 +120,37 @@ function draw()
 
     drawCharacter();
 
-    if (!_collectible.isFound)
-    {
-        drawCollectible(_collectible);
+    for (let i = 0; i < _collectables.length; i++) {
+        drawCollectible(_collectables[i]);
+        checkCollectable(_collectables[i]);
+        if (_collectables[i].isFound) {
+            _collectables.splice(i, 1);
+            console.log("Collectable found");
+        }
     }
 
     pop();
+}
 
-    // Check for collectible pickup
-    if (dist(_gameChar.x, _gameChar.y, _collectible.x_pos, _collectible.y_pos) < 20)
-    {
-        _collectible.isFound = true;
+function generateCanyons(){
+    for (let i = 0; i < 3; i++) {
+        let canyon = {
+            x_pos: random(width),
+            width: 80
+        };
+        _canyons.push(canyon);
+    }
+}
+
+function generateCollectables(){
+    for (let i = 0; i < 5; i++) {
+        let collectible = {
+            x_pos: random(width),
+            y_pos: _floorPos_y,
+            size: 40,
+            isFound: false
+        };
+        _collectables.push(collectible);
     }
 }
 
@@ -213,22 +223,22 @@ function drawCharacter()
 	else if (_gameChar.isRight)
 		_gameChar.x += BLOBBY.SPEED;
 
-	// Apply gravity if above floor
+    
+    // Apply gravity if above floor
 	if (_gameChar.y < _floorPos_y)
-	{
-		_gameChar.y += GRAVITY_SPEED;
-		_gameChar.isFalling = true;
-	}
-	else
-		_gameChar.isFalling = false;
-
-    // Check if character is over the canyon
-    const isOverCanyon = _gameChar.x > _canyon.x_pos 
-        && _gameChar.x < _canyon.x_pos + _canyon.width 
-        && _gameChar.y >= _floorPos_y;
-        
-	if (isOverCanyon)
-		_gameChar.isPlummeting = true;
+    {
+        _gameChar.y += GRAVITY_SPEED;
+        _gameChar.isFalling = true;
+    }
+    else
+    {
+        _gameChar.isFalling = false;
+    }
+    
+    for (let i = 0; i < _canyons.length; i++)
+    {
+        checkCanyon(_canyons[i]);
+    }
 
 	// Plummet if over canyon
 	if (_gameChar.isPlummeting)
@@ -449,8 +459,10 @@ function drawGround()
 // Draws all scenery objects (canyon, mountains, trees, clouds)
 function drawScenery()
 {
-    drawCanyon(_canyon, _floorPos_y);
-
+    for (let i = 0; i < _canyons.length; i++)
+    {
+        drawCanyon(_canyons[i], _floorPos_y);
+    }
     for (let i = 0; i < _mountains.length; i++)
     {
         drawMountain(_mountains[i], _floorPos_y);
@@ -465,16 +477,39 @@ function drawScenery()
     }
 }
 
-// Draws the collectible item
-function drawCollectible(collectible)
+// Check for collectable pickup
+function checkCollectable(t_collectible)
 {
-    stroke(0);
-    fill(255, 215, 0);
-    ellipse(collectible.x_pos, collectible.y_pos - (collectible.size / 2), collectible.size);
-    fill(255, 255, 255);
-    ellipse(collectible.x_pos, collectible.y_pos - (collectible.size / 2), collectible.size * 0.65);
-    fill(255, 215, 0);
-    ellipse(collectible.x_pos, collectible.y_pos - (collectible.size / 2), collectible.size * 0.25);
+    if (dist(_gameChar.x, _gameChar.y, t_collectible.x_pos, t_collectible.y_pos) < 20)
+    {
+        t_collectible.isFound = true;
+    }
+}
+
+// Draws the collectible item
+function drawCollectible(t_collectible)
+{
+    if (!t_collectible.isFound)
+    {
+        stroke(0);
+        fill(255, 215, 0);
+        ellipse(t_collectible.x_pos, t_collectible.y_pos - (t_collectible.size / 2), t_collectible.size);
+        fill(255, 255, 255);
+        ellipse(t_collectible.x_pos, t_collectible.y_pos - (t_collectible.size / 2), t_collectible.size * 0.65);
+        fill(255, 215, 0);
+        ellipse(t_collectible.x_pos, t_collectible.y_pos - (t_collectible.size / 2), t_collectible.size * 0.25);
+    }
+}
+
+// Check if character is over the canyon
+function checkCanyon(t_canyon)
+{
+    const isOverCanyon = _gameChar.x > t_canyon.x_pos 
+        && _gameChar.x < t_canyon.x_pos + t_canyon.width 
+        && _gameChar.y >= _floorPos_y;
+        
+	if (isOverCanyon)
+		_gameChar.isPlummeting = true;
 }
 
 // Draws the canyon
