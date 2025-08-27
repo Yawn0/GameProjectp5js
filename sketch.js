@@ -54,13 +54,65 @@ var _mountains;
 var _collectables = [];
 var _canyons = [];
 var _flagPole;
+var _lives;
 
 // Initializes game state and objects
 function setup()
 {
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    _floorPos_y = height * FLOOR_HEIGHT_RATIO
+    _floorPos_y = height * FLOOR_HEIGHT_RATIO;
+
+    startGame();
+}
+
+// Main game loop: updates camera, draws world, handles collectible logic
+// The logic is split into functions for clarity and ease of maintenance
+function draw()
+{
+    _cameraPosX += _gameChar.isLeft ? -BLOBBY.SPEED
+        : _gameChar.isRight ? BLOBBY.SPEED : 0;
+
+    background(100, 155, 255);
+
+    drawGround();
+
+    push();
+
+    translate(-_cameraPosX, 0)
+
+    drawScenery();
+
+    checkPlayerDie();
+
+    drawCharacter();
+
+    for (let i = 0; i < _collectables.length; i++) {
+        drawCollectible(_collectables[i]);
+        checkCollectable(_collectables[i]);
+        if (_collectables[i].isFound) {
+            _collectables.splice(i, 1);
+        }
+    }
+
+    drawLives();
+
+    drawGameScore();
+
+    drawFinishLine();
+
+    // draw x position of character
+    fill(0);
+    textSize(32);
+    text("x: " + _gameChar.x, _cameraPosX + 20, 100);
+
+    pop();
+}
+
+function startGame(){
+
+    _lives = 3;
+
     _cameraPosX = 0;
 
     // Initialize game character
@@ -71,6 +123,12 @@ function setup()
         isRight: false,
         isFalling: false,
         isPlummeting: false,
+        reset: function(){
+            this.x = width / 2;
+            this.y = _floorPos_y;
+            this.isFalling = false;
+            this.isPlummeting = false;
+        }
     };
 
     _gameScore = 0;
@@ -111,46 +169,6 @@ function setup()
         height: 100,
         isReached: false,
     }
-
-}
-
-// Main game loop: updates camera, draws world, handles collectible logic
-// The logic is split into functions for clarity and ease of maintenance
-function draw()
-{
-    _cameraPosX += _gameChar.isLeft ? -BLOBBY.SPEED
-        : _gameChar.isRight ? BLOBBY.SPEED : 0;
-
-    background(100, 155, 255);
-
-    drawGround();
-
-    push();
-
-    translate(-_cameraPosX, 0)
-
-    drawScenery();
-
-    drawCharacter();
-
-    for (let i = 0; i < _collectables.length; i++) {
-        drawCollectible(_collectables[i]);
-        checkCollectable(_collectables[i]);
-        if (_collectables[i].isFound) {
-            _collectables.splice(i, 1);
-        }
-    }
-
-    drawGameScore();
-
-    drawFinishLine();
-
-    // draw x position of character
-    fill(0);
-    textSize(32);
-    text("x: " + _gameChar.x, _cameraPosX + 20, 100);
-
-    pop();
 }
 
 function generateCanyons(){
@@ -270,11 +288,50 @@ function drawCharacter()
 	}
 }
 
-function drawGameScore()
+function drawLives()
 {
     fill(0);
     textSize(32);
-    text("Score: " + _gameScore, _cameraPosX + 20, 50);
+    // draw lives hearts tokens to represent the remaining lives
+    for (let i = 0; i < _lives; i++) {
+        // Draw heart shape for each life
+        push();
+        translate(_cameraPosX + 30 + i * 40, 30);
+        
+        // Heart color
+        fill(255, 0, 0);
+        noStroke();
+        
+        // Draw heart using bezier curves
+        beginShape();
+        vertex(0, 0);
+        bezierVertex(-10, -10, -20, 0, 0, 10);
+        bezierVertex(20, 0, 10, -10, 0, 0);
+        endShape();
+        
+        pop();
+    }
+}
+
+function checkPlayerDie(){
+    if (_gameChar.y > height)
+    {
+        _lives--;
+        _gameChar.reset();
+        _cameraPosX = 0;
+    }
+
+    if(_lives <= 0)
+    {
+        startGame();
+    }
+}
+
+function drawGameScore()
+{
+    fill(0);
+    textSize(26);
+    text("Score: " + _gameScore, _cameraPosX + 20, 70);
 }
 
 function drawFinishLine()
