@@ -36,18 +36,18 @@ export const BLOBBY = {
 
 // Mutable game state bucket (single export ensures shared live reference)
 export const state = {
-    _sound: null,
-    _floorPos_y: 0,
-    _cameraPosX: 0,
-    _gameChar: null,
-    _gameScore: 0,
-    _trees_x: [],
-    _cloudsCoordinates: [],
-    _clouds: [],
-    _mountains: [],
-    _collectables: [],
-    _canyons: [],
-    _flagPole: null,
-    _lives: 0
+    sound: null,
+    floorPosY: 0,
+    cameraPosX: 0,
+    gameChar: null,
+    gameScore: 0,
+    treesX: [],
+    cloudsCoordinates: [],
+    clouds: [],
+    mountains: [],
+    collectables: [],
+    canyons: [],
+    flagPole: null,
+    lives: 0
 };
 

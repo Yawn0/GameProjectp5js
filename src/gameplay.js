@@ -12,20 +12,20 @@ export function getDirectionalKey(keyCode) {
 
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
-    const g = state._gameChar;
+    const g = state.gameChar;
     if (g.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { g.isLeft = true; }
     else if (directionKey === RIGHT_ARROW) { g.isRight = true; }
     else if (directionKey === UP_ARROW && !g.isFalling) {
-        state._sound.JUMP.play();
+        state.sound.JUMP.play();
         g.y -= JUMP_HEIGHT;
     }
 }
 
 /** Stop horizontal movement on key up. */
 export function keyReleased() {
-    const g = state._gameChar;
+    const g = state.gameChar;
     if (g.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { g.isLeft = false; }
@@ -34,7 +34,7 @@ export function keyReleased() {
 
 /** Advance character physics + pick proper animation. */
 export function drawCharacter() {
-    const g = state._gameChar;
+    const g = state.gameChar;
     if (g.isLeft && g.isFalling) { blobbyJumpingLeft(); }
     else if (g.isRight && g.isFalling) { blobbyJumpingRight(); }
     else if (g.isLeft) { blobbyWalkingLeft(); }
@@ -45,13 +45,13 @@ export function drawCharacter() {
     if (g.isLeft) { g.x -= BLOBBY.SPEED; }
     else if (g.isRight) { g.x += BLOBBY.SPEED; }
 
-    if (g.y < state._floorPos_y) {
+    if (g.y < state.floorPosY) {
         g.y += GRAVITY_SPEED;
         g.isFalling = true;
     }
     else { g.isFalling = false; }
 
-    for (let i = 0; i < state._canyons.length; i++) { checkCanyon(state._canyons[i]); }
+    for (let i = 0; i < state.canyons.length; i++) { checkCanyon(state.canyons[i]); }
 
     if (g.isPlummeting) {
         g.y += PLUMMET_SPEED;
@@ -62,48 +62,48 @@ export function drawCharacter() {
 
 /** Collect coin when player overlaps. */
 export function checkCollectable(t_collectible) {
-    const g = state._gameChar;
+    const g = state.gameChar;
     if (dist(g.x, g.y, t_collectible.x_pos, t_collectible.y_pos) < 20) {
-        state._sound.COLLECT.play();
+        state.sound.COLLECT.play();
         t_collectible.isFound = true;
-        state._gameScore++;
+        state.gameScore++;
     }
 }
 
 /** Trigger plummet when over canyon gap. */
 export function checkCanyon(t_canyon) {
-    const g = state._gameChar;
-    const isOverCanyon = g.x > t_canyon.x_pos && g.x < t_canyon.x_pos + t_canyon.width && g.y >= state._floorPos_y;
+    const g = state.gameChar;
+    const isOverCanyon = g.x > t_canyon.x_pos && g.x < t_canyon.x_pos + t_canyon.width && g.y >= state.floorPosY;
     if (isOverCanyon) { g.isPlummeting = true; }
 }
 
 /** Detect proximity to flag pole top. */
 export function checkFinishLine() {
-    const g = state._gameChar;
-    const f = state._flagPole;
+    const g = state.gameChar;
+    const f = state.flagPole;
     const isOverFinishLine = abs(g.x - f.x_pos) < 10 && abs(g.y - f.y_pos) < 10;
     if (isOverFinishLine) { f.isReached = true; }
 }
 
 /** Life loss + death state check. */
 export function checkPlayerDie() {
-    const g = state._gameChar;
+    const g = state.gameChar;
     if (g.y > height) {
-        state._sound.DEATH.play();
-        state._lives--;
-        g.reset(state._floorPos_y);
-        state._cameraPosX = 0;
+        state.sound.DEATH.play();
+        state.lives--;
+        g.reset(state.floorPosY);
+        state.cameraPosX = 0;
     }
-    if (state._lives <= 0) { g.isDead = true; }
+    if (state.lives <= 0) { g.isDead = true; }
 }
 
 /** Display remaining lives as hearts. */
 export function drawLives() {
     fill(0);
     textSize(32);
-    for (let i = 0; i < state._lives; i++) {
+    for (let i = 0; i < state.lives; i++) {
         push();
-        translate(state._cameraPosX + 30 + i * 40, 30);
+        translate(state.cameraPosX + 30 + i * 40, 30);
         fill(255, 0, 0);
         noStroke();
         beginShape();
@@ -119,13 +119,13 @@ export function drawLives() {
 export function drawGameScore() {
     fill(0);
     textSize(26);
-    text("Score: " + state._gameScore, state._cameraPosX + 20, 70);
+    text("Score: " + state.gameScore, state.cameraPosX + 20, 70);
 }
 
 /** Draw pole and test for completion. */
 export function drawFinishLine() {
     fill(0);
-    const f = state._flagPole;
+    const f = state.flagPole;
     if (f.isReached) { fill(200); }
     else { checkFinishLine(); }
     rect(f.x_pos, f.y_pos, f.width, -f.height);
@@ -135,13 +135,13 @@ export function drawFinishLine() {
 export function drawGameOver() {
     fill(0);
     textSize(32);
-    text("Game Over", state._cameraPosX + 20, 100);
+    text("Game Over", state.cameraPosX + 20, 100);
 }
 
 /** Win banner + sound. */
 export function drawGameWin() {
-    state._sound.WIN.play();
+    state.sound.WIN.play();
     fill(0);
     textSize(32);
-    text("level complete", state._cameraPosX + 20, 100);
+    text("level complete", state.cameraPosX + 20, 100);
 }

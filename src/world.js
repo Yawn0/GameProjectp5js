@@ -5,7 +5,7 @@ import { state } from './constants.js';
 export function drawGround() {
     noStroke();
     fill(0, 155, 0);
-    rect(0, state._floorPos_y, width, height - state._floorPos_y);
+    rect(0, state.floorPosY, width, height - state.floorPosY);
 }
 
 /** Expand seed coordinates into fluffy cloud segments. */
@@ -80,8 +80,8 @@ export function drawCollectible(t_collectible) {
 
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
-    for (let i = 0; i < state._canyons.length; i++) drawCanyon(state._canyons[i], state._floorPos_y);
-    for (let i = 0; i < state._mountains.length; i++) drawMountain(state._mountains[i], state._floorPos_y);
-    for (let i = 0; i < state._trees_x.length; i++) drawTree(state._trees_x[i], state._floorPos_y);
-    for (let i = 0; i < state._clouds.length; i++) drawCloud(state._clouds[i]);
+    for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
+    for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY);
+    for (let i = 0; i < state.treesX.length; i++) drawTree(state.treesX[i], state.floorPosY);
+    for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
 }
