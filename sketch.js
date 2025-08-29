@@ -77,8 +77,6 @@ function draw()
 
     drawGround();
 
-    push();
-
     translate(-_cameraPosX, 0)
 
     drawScenery();
@@ -105,8 +103,6 @@ function draw()
     fill(0);
     textSize(32);
     text("x: " + _gameChar.x, _cameraPosX + 20, 100);
-
-    pop();
 }
 
 function startGame(){
