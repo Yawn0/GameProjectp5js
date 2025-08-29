@@ -40,6 +40,8 @@ const BLOBBY = {
     EYEBROW_STOP: Math.PI * 2 - 0.3
 };
 
+var _sound;
+
 // --- Global variables ---
 // Game state and world objects
 var _floorPos_y;
@@ -59,6 +61,20 @@ var _lives;
 // Initializes game state and objects
 function setup()
 {
+    soundFormats('mp3', 'wav');
+
+    _sound = {
+        baseVolume: 0.1,
+        JUMP: loadSound('assets/jump.wav'),
+        COLLECT: loadSound('assets/collect.wav'),
+        DEATH: loadSound('assets/death.wav'),
+        WIN: loadSound('assets/win.wav'),
+    };
+    _sound.JUMP.setVolume(_sound.baseVolume);
+    _sound.COLLECT.setVolume(_sound.baseVolume);
+    _sound.DEATH.setVolume(_sound.baseVolume);
+    _sound.WIN.setVolume(_sound.baseVolume);
+
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 
     _floorPos_y = height * FLOOR_HEIGHT_RATIO;
@@ -107,6 +123,7 @@ function draw()
 
     if (_flagPole.isReached) {
         drawGameWin();
+        _flagPole.isReached = false;
     }
 }
 
@@ -220,6 +237,7 @@ function keyPressed()
         _gameChar.isRight = true;
     } else if (directionKey === UP_ARROW && !_gameChar.isFalling)
     {
+        _sound.JUMP.play();
         _gameChar.y -= JUMP_HEIGHT; // Make character jump
     }
 }
@@ -318,6 +336,7 @@ function drawLives()
 function checkPlayerDie(){
     if (_gameChar.y > height)
     {
+        _sound.DEATH.play();
         _lives--;
         _gameChar.reset();
         _cameraPosX = 0;
@@ -358,6 +377,7 @@ function drawGameOver()
 
 function drawGameWin()
 {
+    _sound.WIN.play();
     fill(0);
     textSize(32);
     text("level complete", _cameraPosX + 20, 100);
@@ -596,6 +616,7 @@ function checkCollectable(t_collectible)
 {
     if (dist(_gameChar.x, _gameChar.y, t_collectible.x_pos, t_collectible.y_pos) < 20)
     {
+        _sound.COLLECT.play();
         t_collectible.isFound = true;
         _gameScore++;
     }
