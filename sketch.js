@@ -83,7 +83,9 @@ function draw()
 
     checkPlayerDie();
 
-    drawCharacter();
+    if (!_gameChar.isDead) {
+        drawCharacter();
+    }
 
     for (let i = 0; i < _collectables.length; i++) {
         drawCollectible(_collectables[i]);
@@ -99,10 +101,13 @@ function draw()
 
     drawFinishLine();
 
-    // draw x position of character
-    fill(0);
-    textSize(32);
-    text("x: " + _gameChar.x, _cameraPosX + 20, 100);
+    if (_gameChar.isDead) {
+        drawGameOver();
+    }
+
+    if (_flagPole.isReached) {
+        drawGameWin();
+    }
 }
 
 function startGame(){
@@ -119,6 +124,7 @@ function startGame(){
         isRight: false,
         isFalling: false,
         isPlummeting: false,
+        isDead: false,
         reset: function(){
             this.x = width / 2;
             this.y = _floorPos_y;
@@ -319,7 +325,7 @@ function checkPlayerDie(){
 
     if(_lives <= 0)
     {
-        startGame();
+        _gameChar.isDead = true;
     }
 }
 
@@ -341,6 +347,20 @@ function drawFinishLine()
         checkFinishLine();
     }
     rect(_flagPole.x_pos, _flagPole.y_pos, _flagPole.width, -_flagPole.height);
+}
+
+function drawGameOver()
+{
+    fill(0);
+    textSize(32);
+    text("Game Over", _cameraPosX + 20, 100);
+}
+
+function drawGameWin()
+{
+    fill(0);
+    textSize(32);
+    text("level complete", _cameraPosX + 20, 100);
 }
 
 // --- Blobby Drawing Functions ---
