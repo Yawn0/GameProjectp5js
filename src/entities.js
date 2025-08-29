@@ -1,7 +1,8 @@
-/* Lightweight entity classes + simple factory helpers */
+/* Lightweight entity classes + simple factory helpers (ES module) */
+import { generateClouds } from './world.js';
 
 // Player avatar state container
-class GameCharacter {
+export class GameCharacter {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -20,7 +21,7 @@ class GameCharacter {
 }
 
 // Coin / pickup token
-class Collectible {
+export class Collectible {
     constructor(x, y, size = 40) {
         this.x_pos = x;
         this.y_pos = y;
@@ -30,7 +31,7 @@ class Collectible {
 }
 
 // Gap hazard
-class Canyon {
+export class Canyon {
     constructor(x, width = 80) {
         this.x_pos = x;
         this.width = width;
@@ -38,7 +39,7 @@ class Canyon {
 }
 
 // Level completion trigger
-class FlagPole {
+export class FlagPole {
     constructor(x, y, width = 10, height = 100) {
         this.x_pos = x;
         this.y_pos = y;
@@ -49,10 +50,10 @@ class FlagPole {
 }
 
 // Factories mimic former literal object creation; randomness preserved
-const factory = {
+export const factory = {
     collectible: (y) => new Collectible(random(width), y),
     canyon: () => new Canyon(random(width)),
-    clouds: (coords) => generateClouds(coords), // existing function in world.js
+    clouds: (coords) => generateClouds(coords), // relies on world.js exported fn
     flagPole: (x, y) => new FlagPole(x, y),
     gameChar: (floorY) => new GameCharacter(width / 2, floorY)
 };

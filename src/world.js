@@ -1,14 +1,15 @@
-/* World generation + rendering helpers */
+/* World generation + rendering helpers (ES module) */
+import { state } from './constants.js';
 
 /** Draw ground strip. */
-function drawGround() {
+export function drawGround() {
     noStroke();
     fill(0, 155, 0);
-    rect(0, _floorPos_y, width, height - _floorPos_y);
+    rect(0, state._floorPos_y, width, height - state._floorPos_y);
 }
 
 /** Expand seed coordinates into fluffy cloud segments. */
-function generateClouds(cloudsCoordinates) {
+export function generateClouds(cloudsCoordinates) {
     let clouds = [];
     for (let i = 0; i < cloudsCoordinates.length; i++) {
         let cloud = cloudsCoordinates[i];
@@ -21,14 +22,14 @@ function generateClouds(cloudsCoordinates) {
 }
 
 /** Draw one cloud ellipse. */
-function drawCloud(cloud) {
+export function drawCloud(cloud) {
     fill(255);
     noStroke();
     ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
 }
 
 /** Composite triangle mountain with inner + snow layers. */
-function drawMountain(mountain, floorPos_y) {
+export function drawMountain(mountain, floorPos_y) {
     noStroke();
     fill(120, 120, 120);
     triangle(mountain.x_pos, floorPos_y, mountain.x_pos + (310 * mountain.width), 150, mountain.x_pos + (620 * mountain.width), floorPos_y);
@@ -39,7 +40,7 @@ function drawMountain(mountain, floorPos_y) {
 }
 
 /** Stylized layered pine tree. */
-function drawTree(treePos_x, treePos_y) {
+export function drawTree(treePos_x, treePos_y) {
     fill(140, 70, 20);
     rect(treePos_x, treePos_y, 40, -150);
     fill(100, 160, 35);
@@ -51,7 +52,7 @@ function drawTree(treePos_x, treePos_y) {
 }
 
 /** Jagged canyon polygon hazard. */
-function drawCanyon(canyon, floorPos_y) {
+export function drawCanyon(canyon, floorPos_y) {
     fill(139, 69, 19);
     beginShape();
     vertex(canyon.x_pos, floorPos_y);
@@ -65,7 +66,7 @@ function drawCanyon(canyon, floorPos_y) {
 }
 
 /** Render coin if not yet collected. */
-function drawCollectible(t_collectible) {
+export function drawCollectible(t_collectible) {
     if (!t_collectible.isFound) {
         stroke(0);
         fill(255, 215, 0);
@@ -78,9 +79,9 @@ function drawCollectible(t_collectible) {
 }
 
 /** Batch draw of world backdrop elements. */
-function drawScenery() {
-    for (let i = 0; i < _canyons.length; i++) drawCanyon(_canyons[i], _floorPos_y);
-    for (let i = 0; i < _mountains.length; i++) drawMountain(_mountains[i], _floorPos_y);
-    for (let i = 0; i < _trees_x.length; i++) drawTree(_trees_x[i], _floorPos_y);
-    for (let i = 0; i < _clouds.length; i++) drawCloud(_clouds[i]);
+export function drawScenery() {
+    for (let i = 0; i < state._canyons.length; i++) drawCanyon(state._canyons[i], state._floorPos_y);
+    for (let i = 0; i < state._mountains.length; i++) drawMountain(state._mountains[i], state._floorPos_y);
+    for (let i = 0; i < state._trees_x.length; i++) drawTree(state._trees_x[i], state._floorPos_y);
+    for (let i = 0; i < state._clouds.length; i++) drawCloud(state._clouds[i]);
 }

@@ -1,7 +1,9 @@
 /* Blobby pose renderers (no logic side-effects) */
+import { BLOBBY, state } from './constants.js';
 
 /** Idle / neutral pose */
-function blobbyStandingFront() {
+export function blobbyStandingFront() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
@@ -28,7 +30,8 @@ function blobbyStandingFront() {
 }
 
 /** Vertical jump / airborne idle */
-function blobbyJumping() {
+export function blobbyJumping() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.15, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.8, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.8);
@@ -55,7 +58,8 @@ function blobbyJumping() {
 }
 
 /** Walk cycle facing left */
-function blobbyWalkingLeft() {
+export function blobbyWalkingLeft() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 3, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
@@ -78,7 +82,8 @@ function blobbyWalkingLeft() {
 }
 
 /** Walk cycle facing right */
-function blobbyWalkingRight() {
+export function blobbyWalkingRight() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 3, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
@@ -101,7 +106,8 @@ function blobbyWalkingRight() {
 }
 
 /** Airborne with leftward momentum */
-function blobbyJumpingLeft() {
+export function blobbyJumpingLeft() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
@@ -127,7 +133,8 @@ function blobbyJumpingLeft() {
 }
 
 /** Airborne with rightward momentum */
-function blobbyJumpingRight() {
+export function blobbyJumpingRight() {
+    const _gameChar = state._gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     ellipse(_gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1, _gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 + 5, BLOBBY.DIMENSIONS.FEET_WIDTH * 0.9, BLOBBY.DIMENSIONS.FEET_HEIGHT * 0.9);
