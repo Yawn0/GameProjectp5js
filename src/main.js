@@ -70,7 +70,8 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     let platAttempts = 0;
     while (platAttempts < 400 && state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c => c.width >= 90).length) {
         platAttempts++;
-        const level = random() < 0.5 ? 0 : 1;
+    // Lower probability for second layer (e.g., 25%)
+    const level = random() < 0.75 ? 0 : 1;
         const y = level === 0 ? firstLayerY : secondLayerY;
         const w = random(80, 180);
         const x = random(0, WORLD_WIDTH - w);
@@ -102,7 +103,9 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     for (const p of state.platforms) {
         if (random() < 0.6) {
             const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
-            state.collectables.push(new Collectible(cx, p.y_pos));
+            if (cx < flagPoleX - 40) { // keep a little gap before pole
+                state.collectables.push(new Collectible(cx, p.y_pos));
+            }
         }
     }
 
@@ -111,7 +114,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     let groundAttempts = 0;
     while (groundToPlace > 0 && groundAttempts < 400) {
         groundAttempts++;
-        const x = random(WORLD_WIDTH);
+    const x = random(flagPoleX - 60); // only before flag
         if (x >= safeLeft && x <= safeRight) continue;
         let overCanyon = false;
         for (const can of state.canyons) {
@@ -143,6 +146,9 @@ function startGame() {
     state.lives = 3;
     state.cameraPosX = 0;
     state.gameScore = 0;
+    state.winFrame = null;
+    state.loseFrame = null;
+    state.particles = [];
     state.gameChar = factory.gameChar(state.floorPosY);
     generateBackdrop();
     const flagPoleX = WORLD_WIDTH - 150;
@@ -158,8 +164,9 @@ window.setup = function setup() {
         COLLECT: loadSound('assets/collect.wav'),
         DEATH: loadSound('assets/death.wav'),
         WIN: loadSound('assets/win.wav')
+        ,LOST: loadSound('assets/lost.wav') // reuse if lost.wav missing
     };
-    for (const k of ['JUMP','COLLECT','DEATH','WIN']) state.sound[k].setVolume(state.sound.baseVolume);
+    for (const k of ['JUMP','COLLECT','DEATH','WIN','LOST']) state.sound[k].setVolume(state.sound.baseVolume);
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     state.floorPosY = height * FLOOR_HEIGHT_RATIO;
     startGame();
@@ -187,9 +194,31 @@ window.draw = function draw() {
     drawGameScore();
     drawFinishLine();
     if (g.isDead) { drawGameOver(); }
-    if (state.flagPole.isReached) { drawGameWin(); state.flagPole.isReached = false; }
+    if (state.flagPole.isReached || state.winFrame !== null) { drawGameWin(); }
     pop();
 };
 
 window.keyPressed = keyPressed;
 window.keyReleased = keyReleased;
+
+// Mouse restart handler (UI buttons)
+window.mousePressed = function() {
+    if (!(state.flagPole.isReached || state.loseFrame !== null)) return;
+    const btnWWin = 240, btnHWin = 60;
+    const btnWOver = 220, btnHOver = 60;
+    const winBtnX = CANVAS_WIDTH / 2 - btnWWin / 2;
+    const overBtnX = CANVAS_WIDTH / 2 - btnWOver / 2;
+    const commonY = CANVAS_HEIGHT / 3 + 120;
+    if (state.flagPole.isReached) {
+        if (mouseX >= winBtnX && mouseX <= winBtnX + btnWWin && mouseY >= commonY && mouseY <= commonY + btnHWin) { startGame(); }
+    } else if (state.loseFrame !== null) {
+        if (mouseX >= overBtnX && mouseX <= overBtnX + btnWOver && mouseY >= commonY && mouseY <= commonY + btnHOver) { startGame(); }
+    }
+};
+
+// Optional restart via R key at any end state
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R') {
+        if (state.flagPole.isReached || state.loseFrame !== null) { startGame(); }
+    }
+});

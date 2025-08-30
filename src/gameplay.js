@@ -1,5 +1,5 @@
 /* Gameplay loop helpers: input, physics, scoring, UI (ES module) */
-import { BLOBBY, JUMP_HEIGHT, GRAVITY_SPEED, PLUMMET_SPEED, state } from './constants.js';
+import { BLOBBY, JUMP_HEIGHT, GRAVITY_SPEED, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state } from './constants.js';
 import { blobbyJumpingLeft, blobbyJumpingRight, blobbyWalkingLeft, blobbyWalkingRight, blobbyJumping, blobbyStandingFront } from './character.js';
 
 /** Map raw keyCode to canonical direction key. */
@@ -14,6 +14,7 @@ export function getDirectionalKey(keyCode) {
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
     const g = state.gameChar;
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
     if (g.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { g.isLeft = true; }
@@ -32,6 +33,7 @@ export function keyPressed() {
 /** Stop horizontal movement on key up. */
 export function keyReleased() {
     const g = state.gameChar;
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
     if (g.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { g.isLeft = false; }
@@ -41,6 +43,11 @@ export function keyReleased() {
 /** Advance character physics + pick proper animation. */
 export function drawCharacter() {
     const g = state.gameChar;
+    // Freeze character once level completed
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) {
+        blobbyStandingFront();
+        return;
+    }
     if (g.isLeft && g.isFalling) { blobbyJumpingLeft(); }
     else if (g.isRight && g.isFalling) { blobbyJumpingRight(); }
     else if (g.isLeft) { blobbyWalkingLeft(); }
@@ -115,12 +122,21 @@ export function checkFinishLine() {
 export function checkPlayerDie() {
     const g = state.gameChar;
     if (g.y > height) {
-        state.sound.DEATH.play();
+        const isLastLife = state.lives - 1 <= 0;
+        if (isLastLife) {
+            if (state.sound.LOST) state.sound.LOST.play();
+        } else {
+            state.sound.DEATH.play();
+        }
         state.lives--;
         g.reset(state.floorPosY);
         state.cameraPosX = 0;
     }
-    if (state.lives <= 0) { g.isDead = true; }
+    if (state.lives <= 0 && state.loseFrame === null) {
+        g.isDead = true;
+        state.loseFrame = frameCount;
+        // LOST sound already handled when last life was consumed
+    }
 }
 
 /** Display remaining lives as hearts. */
@@ -150,24 +166,123 @@ export function drawGameScore() {
 
 /** Draw pole and test for completion. */
 export function drawFinishLine() {
-    fill(0);
     const f = state.flagPole;
-    if (f.isReached) { fill(200); }
-    else { checkFinishLine(); }
-    rect(f.x_pos, f.y_pos, f.width, -f.height);
+    // Pole style
+    push();
+    const poleGradientSteps = 8;
+    for (let i = 0; i < poleGradientSteps; i++) {
+        const t = i / (poleGradientSteps - 1);
+        const col = lerpColor(color(30,30,30), color(180,180,200), t);
+        stroke(col);
+        line(f.x_pos + i * (f.width / poleGradientSteps), f.y_pos, f.x_pos + i * (f.width / poleGradientSteps), f.y_pos - f.height);
+    }
+    noStroke();
+    // Flag cloth
+    const wave = sin(frameCount * 0.1) * 5;
+    fill(255, 80, 120);
+    beginShape();
+    vertex(f.x_pos + f.width, f.y_pos - f.height);
+    vertex(f.x_pos + f.width + 50, f.y_pos - f.height + wave);
+    vertex(f.x_pos + f.width + 50, f.y_pos - f.height + 25 + wave * 0.5);
+    vertex(f.x_pos + f.width, f.y_pos - f.height + 25);
+    endShape(CLOSE);
+    pop();
+    if (!f.isReached) { checkFinishLine(); }
 }
 
 /** Game over banner. */
 export function drawGameOver() {
-    fill(0);
+    if (state.loseFrame === null) return; // not yet triggered
+    // Screen overlay
+    push();
+    resetMatrix();
+    const elapsed = frameCount - state.loseFrame;
+    const pulse = 0.5 + 0.5 * sin(elapsed * 0.12);
+    textAlign(CENTER, CENTER);
+    textSize(72 + pulse * 8);
+    stroke(40, 0, 0, 180);
+    strokeWeight(8);
+    fill(lerpColor(color(180,0,0), color(255,90,90), pulse));
+    text('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    // Restart button
+    const btnW = 220, btnH = 60;
+    const btnX = CANVAS_WIDTH / 2 - btnW / 2;
+    const btnY = CANVAS_HEIGHT / 3 + 120;
+    noStroke();
+    const hover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
+    fill(hover ? 255 : 230, 60, 60);
+    rect(btnX, btnY, btnW, btnH, 12);
+    fill(255);
     textSize(32);
-    text("Game Over", state.cameraPosX + 20, 100);
+    text('RESTART', CANVAS_WIDTH / 2, btnY + btnH / 2 + 4);
+    pop();
 }
 
 /** Win banner + sound. */
 export function drawGameWin() {
-    state.sound.WIN.play();
-    fill(0);
+    if (state.winFrame === null) {
+        state.winFrame = frameCount;
+        state.sound.WIN.play();
+        // spawn initial burst of particles
+        for (let i = 0; i < 120; i++) {
+            state.particles.push({
+                x: state.flagPole.x_pos + random(-40, 40),
+                y: state.flagPole.y_pos - state.flagPole.height + random(-20, 20),
+                vx: random(-2, 2),
+                vy: random(-3, -1),
+                life: random(40, 90),
+                hue: random(0, 360)
+            });
+        }
+    }
+    // Continuous small trickle
+    if (frameCount % 5 === 0) {
+        state.particles.push({
+            x: state.flagPole.x_pos,
+            y: state.flagPole.y_pos - state.flagPole.height,
+            vx: random(-1, 1),
+            vy: random(-2, -0.5),
+            life: random(50, 80),
+            hue: random(0, 360)
+        });
+    }
+    // Update and draw particles (world space)
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.05; // gravity
+        p.life--;
+        if (p.life <= 0) { state.particles.splice(i, 1); continue; }
+        push();
+        colorMode(HSB, 360, 100, 100, 100);
+        noStroke();
+        fill(p.hue, 80, 100, map(p.life, 0, 90, 0, 100));
+        ellipse(p.x, p.y, 6, 6);
+        pop();
+    }
+    // Screen-fixed win banner (independent of camera)
+    push();
+    resetMatrix();
+    const elapsed = frameCount - state.winFrame;
+    const pulse = 0.5 + 0.5 * sin(elapsed * 0.1);
+    const gradient = lerpColor(color(255, 100, 150), color(255, 220, 80), pulse);
+    textAlign(CENTER, CENTER);
+    textSize(72 + pulse * 8);
+    stroke(0, 150);
+    strokeWeight(6);
+    fill(gradient);
+    text('GAME COMPLETED!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    // Restart button
+    const btnW = 240, btnH = 60;
+    const btnX = CANVAS_WIDTH / 2 - btnW / 2;
+    const btnY = CANVAS_HEIGHT / 3 + 120;
+    const hover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
+    noStroke();
+    fill(hover ? color(255,200,0) : color(255,170,0));
+    rect(btnX, btnY, btnW, btnH, 14);
+    fill(60);
     textSize(32);
-    text("level complete", state.cameraPosX + 20, 100);
+    text('RESTART', CANVAS_WIDTH / 2, btnY + btnH / 2 + 4);
+    pop();
 }

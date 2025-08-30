@@ -51,6 +51,9 @@ export const state = {
     canyons: [],
     platforms: [],
     flagPole: null,
-    lives: 0
+    lives: 0,
+    particles: [], // win celebration particles
+    winFrame: null // frameCount when flag reached
+    ,loseFrame: null // frameCount when game lost
 };
 
