@@ -241,37 +241,38 @@ window.setup = function setup() {
         JUMP: loadSound('assets/jump.wav'),
         COLLECT: loadSound('assets/collect.wav'),
         DEATH: loadSound('assets/death.wav'),
-        WIN: loadSound('assets/win.wav')
-        ,LOST: loadSound('assets/lost.wav') // reuse if lost.wav missing
+        WIN: loadSound('assets/win.wav'),
+        LOST: loadSound('assets/lost.wav'),
+        PLUMMET: loadSound('assets/plummeting.wav')
     };
-    for (const k of ['JUMP','COLLECT','DEATH','WIN','LOST']) state.sound[k].setVolume(state.sound.baseVolume);
+    for (const k of ['JUMP','COLLECT','DEATH','WIN','LOST','PLUMMET']) state.sound[k].setVolume(state.sound.baseVolume);
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     state.floorPosY = height * FLOOR_HEIGHT_RATIO;
     startGame();
 };
 
 window.draw = function draw() {
-    const g = state.gameChar;
+    const gameCharacter = state.gameChar;
     // Move player first (handled in drawCharacter) then sync camera to keep player near center
     background(100, 155, 255);
     // Simple camera follow
-    state.cameraPosX = constrain(g.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    state.cameraPosX = constrain(gameCharacter.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
     drawGround();
     push();
     translate(-state.cameraPosX, 0);
     drawScenery();
     checkPlayerDie();
-    if (!g.isDead) { drawCharacter(); }
+    if (!gameCharacter.isDead) { drawCharacter(); }
     for (let i = 0; i < state.collectables.length; i++) {
-        const c = state.collectables[i];
-        drawCollectible(c);
-        checkCollectable(c);
-        if (c.isFound) { state.collectables.splice(i, 1); i--; }
+        const collectible = state.collectables[i];
+        drawCollectible(collectible);
+        checkCollectable(collectible);
+        if (collectible.isFound) { state.collectables.splice(i, 1); i--; }
     }
     drawLives();
     drawGameScore();
     drawFinishLine();
-    if (g.isDead) { drawGameOver(); }
+    if (gameCharacter.isDead) { drawGameOver(); }
     if (state.flagPole.isReached || state.winFrame !== null) { drawGameWin(); }
     pop();
 };
@@ -295,8 +296,8 @@ window.mousePressed = function() {
 };
 
 // Optional restart via R key at any end state
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'r' || e.key === 'R') {
+document.addEventListener('keydown', (eventObject) => {
+    if (eventObject.key === 'r' || eventObject.key === 'R') {
         if (state.flagPole.isReached || state.loseFrame !== null) { startGame(); }
     }
 });

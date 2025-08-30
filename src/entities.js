@@ -14,6 +14,7 @@ export class GameCharacter {
         this.isPlummeting = false;
         this.isDead = false;
     this.dropThroughFrames = 0; // frames remaining to ignore platforms
+    this.plummetSoundPlayed = false; // prevent repeat sound
     }
     reset(floorY) {
         this.x = width / 2;
@@ -22,6 +23,7 @@ export class GameCharacter {
         this.isFalling = false;
         this.isPlummeting = false;
     this.dropThroughFrames = 0;
+    this.plummetSoundPlayed = false;
     }
 }
 

@@ -13,103 +13,107 @@ export function getDirectionalKey(keyCode) {
 
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
-    const g = state.gameChar;
+    const gameCharacter = state.gameChar;
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
-    if (g.isPlummeting) { return; }
+    if (gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
-    if (directionKey === LEFT_ARROW) { g.isLeft = true; }
-    else if (directionKey === RIGHT_ARROW) { g.isRight = true; }
-    else if (directionKey === UP_ARROW && !g.isFalling) {
+    if (directionKey === LEFT_ARROW) { gameCharacter.isLeft = true; }
+    else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = true; }
+    else if (directionKey === UP_ARROW && !gameCharacter.isFalling) {
         state.sound.JUMP.play();
         // Initiate smooth jump: set upward velocity
-        g.vy = -JUMP_VELOCITY;
-        g.isFalling = true;
+        gameCharacter.vy = -JUMP_VELOCITY;
+        gameCharacter.isFalling = true;
     }
     else if (directionKey === DOWN_ARROW) {
         // Initiate drop-through: temporarily ignore platforms while moving down
-        g.dropThroughFrames = 15; // ~ quarter second at 60fps
-        g.y += 5; // nudge below platform surface
+        gameCharacter.dropThroughFrames = 15; // ~ quarter second at 60fps
+        gameCharacter.y += 5; // nudge below platform surface
     }
 }
 
 /** Stop horizontal movement on key up. */
 export function keyReleased() {
-    const g = state.gameChar;
+    const gameCharacter = state.gameChar;
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
-    if (g.isPlummeting) { return; }
+    if (gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
-    if (directionKey === LEFT_ARROW) { g.isLeft = false; }
-    else if (directionKey === RIGHT_ARROW) { g.isRight = false; }
+    if (directionKey === LEFT_ARROW) { gameCharacter.isLeft = false; }
+    else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = false; }
 }
 
 /** Advance character physics + pick proper animation. */
 export function drawCharacter() {
-    const g = state.gameChar;
+    const gameCharacter = state.gameChar;
     // Freeze character once level completed
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) {
         blobbyStandingFront();
         return;
     }
-    if (g.isLeft && g.isFalling) { blobbyJumpingLeft(); }
-    else if (g.isRight && g.isFalling) { blobbyJumpingRight(); }
-    else if (g.isLeft) { blobbyWalkingLeft(); }
-    else if (g.isRight) { blobbyWalkingRight(); }
-    else if (g.isFalling || g.isPlummeting) { blobbyJumping(); }
+    if (gameCharacter.isLeft && gameCharacter.isFalling) { blobbyJumpingLeft(); }
+    else if (gameCharacter.isRight && gameCharacter.isFalling) { blobbyJumpingRight(); }
+    else if (gameCharacter.isLeft) { blobbyWalkingLeft(); }
+    else if (gameCharacter.isRight) { blobbyWalkingRight(); }
+    else if (gameCharacter.isFalling || gameCharacter.isPlummeting) { blobbyJumping(); }
     else { blobbyStandingFront(); }
 
-    if (g.isLeft) { g.x -= BLOBBY.SPEED; }
-    else if (g.isRight) { g.x += BLOBBY.SPEED; }
+    if (gameCharacter.isLeft) { gameCharacter.x -= BLOBBY.SPEED; }
+    else if (gameCharacter.isRight) { gameCharacter.x += BLOBBY.SPEED; }
 
     // Apply gravity + velocity integration
-    if (g.isPlummeting) {
+    if (gameCharacter.isPlummeting) {
         // plummeting handled later
     } else {
-        g.vy += GRAVITY_ACCEL; // accumulate gravity
-        g.y += g.vy;
-        if (g.y >= state.floorPosY) {
-            g.y = state.floorPosY;
-            g.vy = 0;
-            g.isFalling = false;
+        gameCharacter.vy += GRAVITY_ACCEL; // accumulate gravity
+        gameCharacter.y += gameCharacter.vy;
+        if (gameCharacter.y >= state.floorPosY) {
+            gameCharacter.y = state.floorPosY;
+            gameCharacter.vy = 0;
+            gameCharacter.isFalling = false;
+            gameCharacter.isPlummeting = false;
+            gameCharacter.plummetSoundPlayed = false;
         } else {
-            g.isFalling = g.vy > 0; // falling when moving downward
+            gameCharacter.isFalling = gameCharacter.vy > 0; // falling when moving downward
         }
     }
 
     // Platform collision (landing)
     // Approximate character bottom as g.y, and horizontal bounds as body width * 0.5
-    const halfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
+    const characterHalfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
     let onPlatform = false;
-    if (g.dropThroughFrames > 0) { g.dropThroughFrames--; }
+    if (gameCharacter.dropThroughFrames > 0) { gameCharacter.dropThroughFrames--; }
     else {
-        for (const p of state.platforms) {
-            const withinX = g.x + halfWidth > p.x_pos && g.x - halfWidth < p.x_pos + p.width;
-            const closeToTop = abs(g.y - p.y_pos) < 5; // tolerance for landing
-            const abovePlatform = g.y <= p.y_pos + 5; // not falling through from below
+        for (const platform of state.platforms) {
+            const withinX = gameCharacter.x + characterHalfWidth > platform.x_pos && gameCharacter.x - characterHalfWidth < platform.x_pos + platform.width;
+            const closeToTop = abs(gameCharacter.y - platform.y_pos) < 5; // tolerance for landing
+            const abovePlatform = gameCharacter.y <= platform.y_pos + 5; // not falling through from below
             if (withinX && closeToTop && abovePlatform) {
-                g.y = p.y_pos; // snap to platform top
-                g.vy = 0;
-                g.isFalling = false;
+                gameCharacter.y = platform.y_pos; // snap to platform top
+                gameCharacter.vy = 0;
+                gameCharacter.isFalling = false;
+                gameCharacter.isPlummeting = false;
+                gameCharacter.plummetSoundPlayed = false;
                 onPlatform = true;
                 break;
             }
         }
     }
-    if (!onPlatform && g.y < state.floorPosY) { g.isFalling = true; }
+    if (!onPlatform && gameCharacter.y < state.floorPosY) { gameCharacter.isFalling = true; }
 
     for (let i = 0; i < state.canyons.length; i++) { checkCanyon(state.canyons[i]); }
 
-    if (g.isPlummeting) {
-        g.y += PLUMMET_SPEED;
-        g.vy = 0;
-        g.isLeft = false;
-        g.isRight = false;
+    if (gameCharacter.isPlummeting) {
+        gameCharacter.y += PLUMMET_SPEED;
+        gameCharacter.vy = 0;
+        gameCharacter.isLeft = false;
+        gameCharacter.isRight = false;
     }
 }
 
 /** Collect coin when player overlaps. */
 export function checkCollectable(t_collectible) {
-    const g = state.gameChar;
-    if (dist(g.x, g.y, t_collectible.x_pos, t_collectible.y_pos) < 20) {
+    const gameCharacter = state.gameChar;
+    if (dist(gameCharacter.x, gameCharacter.y, t_collectible.x_pos, t_collectible.y_pos) < 20) {
         state.sound.COLLECT.play();
         t_collectible.isFound = true;
         state.gameScore++;
@@ -118,23 +122,32 @@ export function checkCollectable(t_collectible) {
 
 /** Trigger plummet when over canyon gap. */
 export function checkCanyon(t_canyon) {
-    const g = state.gameChar;
-    const isOverCanyon = g.x > t_canyon.x_pos && g.x < t_canyon.x_pos + t_canyon.width && g.y >= state.floorPosY;
-    if (isOverCanyon) { g.isPlummeting = true; }
+    const gameCharacter = state.gameChar;
+    const isOverCanyon = gameCharacter.x > t_canyon.x_pos && gameCharacter.x < t_canyon.x_pos + t_canyon.width && gameCharacter.y >= state.floorPosY;
+    if (isOverCanyon) {
+        if (!gameCharacter.isPlummeting) {
+            gameCharacter.isPlummeting = true;
+            gameCharacter.plummetSoundPlayed = false; // reset flag at start
+        }
+        if (!gameCharacter.plummetSoundPlayed && state.sound.PLUMMET) {
+            state.sound.PLUMMET.play();
+            gameCharacter.plummetSoundPlayed = true;
+        }
+    }
 }
 
 /** Detect proximity to flag pole top. */
 export function checkFinishLine() {
-    const g = state.gameChar;
-    const f = state.flagPole;
-    const isOverFinishLine = abs(g.x - f.x_pos) < 10 && abs(g.y - f.y_pos) < 10;
-    if (isOverFinishLine) { f.isReached = true; }
+    const gameCharacter = state.gameChar;
+    const finishFlag = state.flagPole;
+    const isOverFinishLine = abs(gameCharacter.x - finishFlag.x_pos) < 10 && abs(gameCharacter.y - finishFlag.y_pos) < 10;
+    if (isOverFinishLine) { finishFlag.isReached = true; }
 }
 
 /** Life loss + death state check. */
 export function checkPlayerDie() {
-    const g = state.gameChar;
-    if (g.y > height) {
+    const gameCharacter = state.gameChar;
+    if (gameCharacter.y > height) {
         const isLastLife = state.lives - 1 <= 0;
         if (isLastLife) {
             if (state.sound.LOST) state.sound.LOST.play();
@@ -142,11 +155,11 @@ export function checkPlayerDie() {
             state.sound.DEATH.play();
         }
         state.lives--;
-        g.reset(state.floorPosY);
+        gameCharacter.reset(state.floorPosY);
         state.cameraPosX = 0;
     }
     if (state.lives <= 0 && state.loseFrame === null) {
-        g.isDead = true;
+        gameCharacter.isDead = true;
         state.loseFrame = frameCount;
         // LOST sound already handled when last life was consumed
     }

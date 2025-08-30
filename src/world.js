@@ -200,10 +200,10 @@ export function drawScenery() {
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
     // Platforms (above scenery so they are visible)
     for (let i = 0; i < state.platforms.length; i++) {
-        const p = state.platforms[i];
+        const platform = state.platforms[i];
         stroke(120, 100, 20, 120);
         strokeWeight(2);
         fill(230, 210, 40);
-        rect(p.x_pos, p.y_pos, p.width, p.height, 3);
+        rect(platform.x_pos, platform.y_pos, platform.width, platform.height, 3);
     }
 }
