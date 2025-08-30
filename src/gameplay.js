@@ -246,9 +246,12 @@ export function ensureWinParticles() {
                 vx: random(-2, 2),
                 vy: random(-3, -1),
                 life: random(40, 90),
-                hue: random(0, 360)
+                hue: random(0, 360),
+                maxLife: 0 // assigned below for fade calc
             });
         }
+        // Assign maxLife after creation (cannot know individually before random)
+        for (const p of state.particles) { if (!p.maxLife) p.maxLife = p.life; }
     }
     // Drip-feed sparkle: every 5 frames add a new lighter particle for lingering celebration.
     if (frameCount % 5 === 0) {
@@ -258,16 +261,34 @@ export function ensureWinParticles() {
             vx: random(-1, 1),
             vy: random(-2, -0.5),
             life: random(50, 80),
-            hue: random(0, 360)
+            hue: random(0, 360),
+            maxLife: 0
         });
+        const last = state.particles[state.particles.length - 1];
+        last.maxLife = last.life;
     }
     // Particle integration + pruning (iterate backwards for O(1) removals)
     for (let i = state.particles.length - 1; i >= 0; i--) {
         const p = state.particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.05;
+        p.vy += 0.05; // mild gravity
         p.life--;
         if (p.life <= 0) { state.particles.splice(i, 1); }
+    }
+    // Draw remaining particles (confetti over flag pole)
+    if (state.particles.length) {
+        push();
+        colorMode(HSB, 360, 100, 100, 100);
+        noStroke();
+        for (const p of state.particles) {
+            const t = 1 - (p.life / p.maxLife);
+            const alpha = 100 * (1 - t);
+            fill(p.hue, 80, 100, alpha);
+            // slight size pulse
+            const sz = 6 - 4 * t + sin(frameCount * 0.3 + p.hue) * 0.6;
+            ellipse(p.x, p.y, sz, sz * 0.85);
+        }
+        pop();
     }
 }

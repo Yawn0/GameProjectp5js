@@ -201,7 +201,12 @@ function generateLevelContent({
             For WORLD_WIDTH < b → fixed at n (stable look in small/medium worlds).
             Once WORLD_WIDTH ≥ b, count grows (e.g. 8000 → 100, 12000 → 150).
     */
-    const treeCountTarget = max(80, floor(WORLD_WIDTH / 80));
+    // Foreground tree density tuning:
+    // Previously: max(80, floor(WORLD_WIDTH / 80)) which produced a very dense canopy.
+    // Reduce density by increasing divisor and lowering fixed minimum so small worlds are less crowded.
+    const TREE_MIN_BASE = 60;              // was 80
+    const TREE_DENSITY_DIVISOR = 110;      // was 80 (higher => fewer trees per horizontal span)
+    const treeCountTarget = max(TREE_MIN_BASE, floor(WORLD_WIDTH / TREE_DENSITY_DIVISOR));
 
     let treeAttempts = 0;
     while (state.trees.length < treeCountTarget && treeAttempts < treeCountTarget * 30)
@@ -266,7 +271,8 @@ function generateLevelContent({
     state.trees3.sort((a, b) => a.x - b.x);
 
     // Scatter rocks (avoid canyons & safe zone)
-    const rockTarget = floor(50 * worldScale);
+    // Rock density tuning: previously 50 * worldScale (felt cluttered after reducing tree density)
+    const rockTarget = floor(32 * worldScale); // lowered multiplier for sparser rocks
     let rockAttempts = 0;
     while (state.rocks.length < rockTarget && rockAttempts < rockTarget * 20)
     {
