@@ -5,17 +5,21 @@ A side‑scrolling mini platformer built with vanilla p5.js + ES modules. The co
 ## High‑Level Architecture
 
 Modules:
-- `constants.js` – Core numeric constants and a single shared mutable `state` object.
-- `entities.js` – Simple data classes (`GameCharacter`, `Collectible`, `Canyon`, `Platform`, `FlagPole`) plus the `factory` object that constructs entities and plain value objects (trees, rocks, flowers, grass, worms, mountains, clouds wrapper).
-- `world.js` – Pure rendering helpers for background & decorative elements. No game logic; it reads from `state` to draw.
-- `character.js` – Pose / sprite rendering functions (no state mutation beyond reading `state.gameChar`).
-- `gameplay.js` – Input handling, physics (gravity & collision), scoring, HUD, death / win sequences.
-- `main.js` – p5 lifecycle (`setup`, `draw`), procedural level generation, and high‑level orchestration.
+- `constants.js` – Core numeric constants and a single shared mutable `state` object (wind, camera, arrays of entities, flags for start screen & music, etc.).
+- `entities.js` – Lightweight data classes plus the `factory` (central creation point for all game objects & simple value objects).
+- `world.js` – Pure rendering helpers for ground / scenery / hazards / platforms / critters. Contains no progression logic.
+- `character.js` – Pose rendering (animation variants) for the player character.
+- `gameplay.js` – Input mapping, physics integration (gravity, jump, drop‑through platforms), scoring, win/lose checks, particle spawning on win.
+- `hud.js` – Screen‑space UI (lives, score, music toggle button, start screen overlay, win/lose banners).
+- `main.js` – p5 lifecycle (`setup`, `draw`), procedural generation pipeline, camera update, and orchestration of per‑frame steps.
 
-Data Flow:
-1. `main.js` seeds / regenerates world content via `factory` helpers and populates arrays inside `state`.
-2. Each animation frame: `draw()` updates camera & wind, delegates rendering to world + character + HUD functions.
-3. Interaction (collecting, falling, winning) mutates `state`, which subsequent frames read.
+See `TECH_NOTES.md` for deeper implementation details.
+
+Data Flow (Frame Loop):
+1. `main.js` (on restart / setup) generates content via `factory.*` and stores it in `state` arrays.
+2. Each `draw()` frame updates ambient wind + camera, then draws: ground -> translated world scenery -> interactive elements -> particles -> pops translation -> HUD (pure screen coordinates).
+3. Gameplay logic (collect / canyon / worm collision / death / win) mutates `state`. Rendering reads `state` only (no side effects in draw helpers).
+4. Audio: music volume toggled (mute strategy) without stopping playback for instant resume.
 
 ## Factory Pattern Usage
 
@@ -52,8 +56,30 @@ Every platform (including additional random ones) uses this factory call. No dir
 ## Notable Implementation Details
 
 Physics:
-- Gravity integration uses a vertical velocity (`vy`) accumulated by `GRAVITY_ACCEL` each frame.
-- Platform landing detection uses horizontal overlap + vertical proximity tolerance, with a drop‑through window (`dropThroughFrames`).
+- Gravity integration via vertical velocity (`vy`) + constant `GRAVITY_ACCEL`.
+- Jump sets `vy` negative; falling state toggled when `vy > 0` while above floor.
+- Platform landing: O(n) scan with horizontal overlap & small vertical tolerance; a short `dropThroughFrames` window lets the player intentionally fall through.
+- Canyon plummet: only triggers when horizontally over a canyon AND on/near floor, avoiding false triggers mid‑jump.
+
+Platforms (Generation Rules):
+- Layer 0: bridge wide canyons first to guarantee traversability, then add sparse extras with minimum spacing & spawn/flag exclusion zones.
+- Layer 1: optional side platforms placed adjacent (left OR right) to a base platform, never horizontally overlapping any existing platform, and only if horizontally reachable (<= safe jump reach constant). This keeps silhouettes clean and navigation readable.
+
+Worms:
+- Small ground critters with sinusoidal segmented bodies. If the player runs over one on the ground, the worm is squished: splash particles + sound + player loses a life (the start screen warns: "Don't kill the worms!"). Accidental kills add tension to ground traversal.
+
+Start Screen & Music:
+- Game begins paused behind a start overlay (instructions + warning) until first key press / click.
+- Music loads silently; unmuted playback starts after dismissing screen if enabled.
+- Music toggle (button or M key) mutes/unmutes by volume (does not stop) for seamless resume.
+
+Wind & Parallax:
+- A noise‑driven `windValue` animates scenery sway (trees, flowers, grass) + subtle cloud bobbing.
+- Mountains & hills apply low parallax factors for depth; clouds wrap horizontally relative to camera for continuous sky.
+
+Particles:
+- Win: initial celebratory burst + periodic dribble effect until end screen.
+- Worm splash: expanding ring + radial particles with fade & lifespan.
 
 Camera:
 - Simple horizontal follow: centers on the character but clamps to world bounds.
@@ -62,22 +88,45 @@ Parallax & Wind:
 - Subtle parallax factor for mountains; clouds & decorations sway using a noise‑evolved `windValue` stored in `state`.
 
 HUD:
-- Lives and score drawn in world space with camera compensation. (Could be moved post-translation as a future simplification.)
+- Drawn after camera translation is popped (true screen space). This prevents input hitbox mismatches (e.g., music toggle reliability fix) and avoids repeated camera offsets.
 
 Procedural Generation Highlights:
-- Spacing rules ensure canyons don't crowd each other or the flag area.
-- Optional second platform layer with probability weighting.
-- Environmental decoration (trees, rocks, flowers, grass, worms) uses probabilistic placement + minimal spacing heuristics.
+- Canyons: rejection sampling with minimum gap + flag safety margin.
+- Platforms: deterministic bridging first; extras & secondary layer respect spacing / reach invariants.
+- Trees: soft clustering via probabilistic rejection (hard & soft radius) yields natural distribution.
+- Decoration (rocks, flowers, grass): density scales with world width using capped attempt loops to avoid infinite retries.
+- Worms: random ground spawn excluding safe zones & canyon spans; parameter randomization for movement variety.
+- Collectibles: chance on platforms + limited ground collectibles pre‑flag to encourage forward motion.
+
+## Controls
+Keyboard (WASD & Arrows supported):
+- Left / A: move left
+- Right / D: move right
+- Up / W / Space: jump
+- Down / S: drop through platform (briefly disables landing collisions)
+- M: toggle music mute/unmute
+- R: restart after win / game over
+
+Mouse:
+- Click music button (top‑right) to mute/unmute.
+- Click restart button on win / game over banners.
 
 ## Skills Practiced (first‑person, as the developer)
-- Modular ES6 design: Broke the game into cohesive modules with clear responsibilities.
-- Factory pattern: Centralized entity creation to reduce coupling and prepare for scaling (e.g., adding new entity attributes without touching generation code everywhere).
-- Procedural generation: Implemented spacing heuristics, probabilistic placements, and avoidance regions (safe spawn, flag pole exclusion, canyon overlap constraints).
-- Basic physics integration: Replaced ad‑hoc jump with velocity + acceleration model for smoother motion.
-- State management: Consolidated mutable game state into a single exported `state` object to simplify debugging.
-- Rendering layering & parallax: Ordered draw calls to achieve depth while keeping code straightforward.
-- Micro performance considerations: Avoided unnecessary object allocations inside frame loops (e.g., pre-existing arrays mutated in place, small value objects for scenery).
-- Code readability & maintainability: Added descriptive comments, consistent naming, and removed implicit logic duplication.
+- Modular ES module architecture & separation of concerns.
+- Factory pattern for consistent object creation & future extensibility.
+- Procedural generation with layered constraints (reachability, spacing, exclusion zones).
+- Physics & collision simplification (tolerant landing, drop‑through mechanic, plummet state).
+- Audio UX: non‑destructive mute strategy to avoid restart latencies.
+- Particle & small animation systems (win burst, worm splash, wind sway) optimizing for readability.
+- State centralization + minimal object churn for performance.
+- Documentation: progressive commenting + deep dive in `TECH_NOTES.md`.
 
 ## Running
-Open `index.html` in a local static server (or directly if your browser allows local audio). The p5 scripts are included locally under `libraries/`.
+Open `index.html` via a local static server (recommended so audio loads reliably). All p5 libraries are bundled under `libraries/`.
+
+Optional quick static server examples:
+- VS Code Live Server extension
+- Python: `python -m http.server` (then browse to http://localhost:8000)
+
+## Further Technical Details
+For deeper explanations (generation algorithm step order, particle lifecycle, wind math, performance considerations, and extension ideas) see `TECH_NOTES.md`.

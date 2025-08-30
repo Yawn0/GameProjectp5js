@@ -33,6 +33,7 @@ export function drawCloud(cloud) {
     const base = cloud.light || 235;
     const shadow = max(160, base - 55);
     const highlight = min(255, base + 12);
+    // Vertical bob: phase depends on x + time so different clouds desync; scaled by current windValue.
     const windOffsetY = state.windValue * 6 * sin((cloud.x + frameCount * 0.6) * 0.0025);
 
     // Subtle shadow (draw first)
@@ -49,8 +50,9 @@ export function drawCloud(cloud) {
 
     // Horizontal drift
     if (cloud.speed) {
-        cloud.x += cloud.speed;
-        if (cloud.x - state.cameraPosX > WORLD_WIDTH + 150) { // wrap after exiting right side
+        cloud.x += cloud.speed; // simple constant drift (parallax layer speed chosen per cluster)
+        // Wrap logic uses cameraPosX so far off‑screen clouds recycle seamlessly even after large camera jumps.
+        if (cloud.x - state.cameraPosX > WORLD_WIDTH + 150) {
             cloud.x = -150 + state.cameraPosX;
         }
     }
@@ -217,19 +219,25 @@ export function drawCollectible(collectible) {
 
 /** Crawling worm composed of small segments with sinusoidal undulation. */
 export function drawWorm(worm) {
-    // Update motion
-    worm.phase += 0.15;
-    worm.x += worm.speed * 0.6 * worm.dir;
+    // Update motion:
+    //  phase drives sinusoidal offset for each segment (gives crawling wiggle)
+    //  horizontal position advances at (speed * scalar) in current direction
+    worm.phase += 0.15;            // Larger = faster wiggle frequency
+    worm.x += worm.speed * 0.6 * worm.dir; // 0.6 dampens raw speed so random range stays gentle
     // Reverse direction at bounds
     if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
     if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
-    const amplitude = 2.2; 
-    const segmentSpacing = 5;
+    const amplitude = 2.2;          // vertical wave amplitude (small for subtle motion)
+    const segmentSpacing = 5;       // horizontal distance between segment centers
     noStroke();
     for (let s = 0; s < worm.segmentCount; s++) {
+        // Offset segment horizontally opposite movement direction so body trails behind head.
         const segX = worm.x - worm.dir * s * segmentSpacing;
+        // Phase offset per segment (s * 0.6) shifts sine so wave ripples down body.
         const wave = sin(worm.phase - s * 0.6) * amplitude;
+        // Apply slight vertical modulation (scaled down to keep worm hugging ground).
         const segY = worm.y + wave * 0.15;
+        // Progressive lightening for a simple depth / highlight illusion.
         const shade = 180 + s * 8;
         fill(shade, 100, 60);
         ellipse(segX, segY, 7, 5);
@@ -241,7 +249,7 @@ export function drawWorm(worm) {
 
 /** Brief splash effect */
 export function drawSplash(s) {
-    // Initialize particle rays once
+    // Lazily initialize particle rays (so factory stays lightweight)
     if (!s.particles) {
         s.particles = [];
         for (let i = 0; i < 10; i++) {
@@ -253,6 +261,7 @@ export function drawSplash(s) {
             });
         }
     }
+    // Normalized life progress (0 -> birth, 1 -> end)
     const t = 1 - (s.life / s.maxLife);
     for (const p of s.particles) {
         p.r = lerp(0, p.maxR, t);
@@ -262,7 +271,7 @@ export function drawSplash(s) {
         fill(255, 200, 120, 200 * (1 - t));
         ellipse(px, py, 4, 4);
     }
-    // Central expanding ring
+    // Central expanding ring (ties particles together visually)
     noFill();
     stroke(255, 220, 150, 180 * (1 - t));
     strokeWeight(4 - t * 3);

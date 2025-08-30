@@ -11,7 +11,16 @@ export function getDirectionalKey(keyCode) {
     return '';
 }
 
-/** Handle key down events (movement + jump). */
+/** Handle key down events (movement + jump).
+ *  Order of checks:
+ *   1. Lazy-start music when first gameplay input happens (avoids autoplay restrictions & start screen)
+ *   2. Ignore input if game already ended or plummeting (locks state)
+ *   3. Map key to canonical direction; update directional flags OR perform jump / drop-through.
+ *
+ *  Drop-through mechanic:
+ *   Setting dropThroughFrames > 0 makes landing logic temporarily ignore platforms so the
+ *   player can descend intentionally. A slight +y nudge ensures we're below platform top next frame.
+ */
 export function keyPressed() {
     const gameCharacter = state.gameChar;
     // Start background music only if enabled and not on start screen
@@ -44,7 +53,22 @@ export function keyReleased() {
     else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = false; }
 }
 
-/** Advance character physics + pick proper animation. */
+/** Advance character physics + pick proper animation.
+ *  Core update sequence per frame:
+ *    A. Early exit if win/lose to freeze pose.
+ *    B. Choose animation based on (directional flags, vertical state).
+ *    C. Apply horizontal movement (constant speed while key held).
+ *    D. Apply gravity integration if not plummeting.
+ *    E. Resolve landing on floor OR set falling flag when vy > 0.
+ *    F. Platform landing pass (only if not currently dropping through one).
+ *    G. Canyon check (may flip to plummeting state).
+ *    H. If plummeting, override vertical motion with constant downward speed.
+ *
+ *  Notes:
+ *    - vy integrates gravitational acceleration; jump sets negative vy.
+ *    - isFalling distinguishes upward vs downward phases for animation.
+ *    - isPlummeting suppresses further jump / horizontal control until resolved.
+ */
 export function drawCharacter() {
     const gameCharacter = state.gameChar;
     // Freeze character once level completed
@@ -81,17 +105,20 @@ export function drawCharacter() {
     }
 
     // Platform collision (landing)
-    // Approximate character bottom as g.y, and horizontal bounds as body width * 0.5
+    // Simplified approach: treat character as an AABB footprint whose vertical reference is gameCharacter.y.
+    // We only consider collisions when close to platform top (|dy| < 5) to avoid snapping from far below.
+    // Horizontal overlap test uses half body width. This keeps platform logic O(n) over current platforms.
     const characterHalfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
     let onPlatform = false;
     if (gameCharacter.dropThroughFrames > 0) { gameCharacter.dropThroughFrames--; }
     else {
         for (const platform of state.platforms) {
             const withinX = gameCharacter.x + characterHalfWidth > platform.x_pos && gameCharacter.x - characterHalfWidth < platform.x_pos + platform.width;
-            const closeToTop = abs(gameCharacter.y - platform.y_pos) < 5; // tolerance for landing
-            const abovePlatform = gameCharacter.y <= platform.y_pos + 5; // not falling through from below
+            const closeToTop = abs(gameCharacter.y - platform.y_pos) < 5;  // vertical snap tolerance
+            const abovePlatform = gameCharacter.y <= platform.y_pos + 5;    // ensures we only land from above
             if (withinX && closeToTop && abovePlatform) {
-                gameCharacter.y = platform.y_pos; // snap to platform top
+                // Landing resolution: snap, zero vertical speed, reset fall / plummet flags.
+                gameCharacter.y = platform.y_pos;
                 gameCharacter.vy = 0;
                 gameCharacter.isFalling = false;
                 gameCharacter.isPlummeting = false;
@@ -123,7 +150,11 @@ export function checkCollectable(collectible) {
     }
 }
 
-/** Trigger plummet when over canyon gap. */
+/** Trigger plummet when over canyon gap.
+ *  Condition: horizontal inside canyon bounds AND standing on the floor (y >= floor).
+ *  We deliberately require contact with floor to avoid triggering mid‑air when jumping over.
+ *  Once triggered, sets isPlummeting and plays a one‑shot sound; later drawCharacter applies constant descent.
+ */
 export function checkCanyon(canyon) {
     const gameCharacter = state.gameChar;
     const isOverCanyon = gameCharacter.x > canyon.x_pos && gameCharacter.x < canyon.x_pos + canyon.width && gameCharacter.y >= state.floorPosY;
@@ -139,7 +170,7 @@ export function checkCanyon(canyon) {
     }
 }
 
-/** Detect proximity to flag pole top. */
+/** Detect proximity to flag pole top (simple distance threshold on both axes). */
 export function checkFinishLine() {
     const gameCharacter = state.gameChar;
     const finishFlag = state.flagPole;
@@ -147,7 +178,10 @@ export function checkFinishLine() {
     if (isOverFinishLine) { finishFlag.isReached = true; }
 }
 
-/** Life loss + death state check. */
+/** Life loss + death state check.
+ *  Falling below canvas bottom decrements lives; character is reset to spawn.
+ *  Music stops only once when lives deplete -> loseFrame is stamped to freeze state & enable HUD overlay.
+ */
 export function checkPlayerDie() {
     const gameCharacter = state.gameChar;
     if (gameCharacter.y > height) {
@@ -204,6 +238,7 @@ export function ensureWinParticles() {
     if (state.winFrame === null) {
         state.winFrame = frameCount;
         state.sound.WIN.play();
+        // Initial celebratory burst: 120 particles with randomized velocities & hues.
         for (let i = 0; i < 120; i++) {
             state.particles.push({
                 x: state.flagPole.x_pos + random(-40, 40),
@@ -215,6 +250,7 @@ export function ensureWinParticles() {
             });
         }
     }
+    // Drip-feed sparkle: every 5 frames add a new lighter particle for lingering celebration.
     if (frameCount % 5 === 0) {
         state.particles.push({
             x: state.flagPole.x_pos,
@@ -225,6 +261,7 @@ export function ensureWinParticles() {
             hue: random(0, 360)
         });
     }
+    // Particle integration + pruning (iterate backwards for O(1) removals)
     for (let i = state.particles.length - 1; i >= 0; i--) {
         const p = state.particles[i];
         p.x += p.vx;

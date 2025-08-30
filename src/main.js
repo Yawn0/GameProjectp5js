@@ -10,6 +10,10 @@ export function keyPressed() { gameplayKeyPressed(); }
 export function keyReleased() { gameplayKeyReleased(); }
 
 // Procedural level generation (canyons, platforms, collectibles)
+/**
+ * generateLevelContent
+ * Detailed doc in comment: fills state.* arrays via rejection sampling.
+ */
 function generateLevelContent({
     numCollectibles = 3,
     numCanyons = 8,
@@ -160,8 +164,7 @@ function generateLevelContent({
     }
 
     // Collectibles on platforms
-    for (const p of state.platforms)
-    {
+    for (const p of state.platforms) {
         if (random() >= 0.25) continue;
         const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
         if (cx >= flagPoleX - 40) continue; // keep a little gap before pole
@@ -303,14 +306,14 @@ function generateLevelContent({
     // Worms: small crawling critters on ground (avoid canyons & safe zone)
     const wormCount = floor(6 * worldScale) + 3;
     let wormAttempts = 0;
-    while (state.worms.length < wormCount && wormAttempts < wormCount * 40)
-    {
+    while (state.worms.length < wormCount && wormAttempts < wormCount * 40) {
         wormAttempts++;
         const wx = random(WORLD_WIDTH);
         if (wx > safeLeft - 40 && wx < safeRight + 40) continue;
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
+        // Worm(x, y, segmentCount, direction, speed, phase)
         state.worms.push(factory.worm(wx, state.floorPosY - 3, floor(random(4, 6)), random([-1, 1]), random(0.07, 0.1), random(TWO_PI)));
     }
 }
