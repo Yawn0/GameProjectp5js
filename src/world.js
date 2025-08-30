@@ -53,14 +53,21 @@ export function drawCloud(cloud) {
 }
 
 /** Composite triangle mountain with inner + snow layers. */
-export function drawMountain(mountain, floorPos_y) {
+export function drawMountain(mountain, floorPos_y, camX) {
+    // Much more subtle parallax (close to foreground speed)
+    const PARALLAX_FACTOR = 0.1; // 0=no movement, 1=normal; choose high for subtle effect
+    const baseX = mountain.x_pos + camX * PARALLAX_FACTOR;
     noStroke();
-    fill(120, 120, 120);
-    triangle(mountain.x_pos, floorPos_y, mountain.x_pos + (310 * mountain.width), 150, mountain.x_pos + (620 * mountain.width), floorPos_y);
-    fill(150, 150, 150);
-    triangle(mountain.x_pos + (40 * mountain.width), floorPos_y, mountain.x_pos + (310 * mountain.width), 200, mountain.x_pos + (550 * mountain.width), floorPos_y);
-    fill(255, 255, 255);
-    triangle(mountain.x_pos + (250 * mountain.width), 250, mountain.x_pos + (310 * mountain.width), 170, mountain.x_pos + (365 * mountain.width), 250);
+    // Base two-tone body
+    fill(125, 125, 125);
+    triangle(baseX, floorPos_y, baseX + (310 * mountain.width), 150, baseX + (620 * mountain.width), floorPos_y);
+    fill(170, 170, 170);
+    triangle(baseX + (40 * mountain.width), floorPos_y, baseX + (310 * mountain.width), 200, baseX + (550 * mountain.width), floorPos_y);
+    // Snow cap + subtle secondary patch (no vertical lines)
+    fill(255);
+    triangle(baseX + (250 * mountain.width), 250, baseX + (310 * mountain.width), 170, baseX + (365 * mountain.width), 250);
+    fill(235);
+    triangle(baseX + (295 * mountain.width), 240, baseX + (310 * mountain.width), 210, baseX + (325 * mountain.width), 240);
 }
 
 /** Stylized layered pine tree. */
@@ -87,6 +94,82 @@ export function drawCanyon(canyon, floorPos_y) {
     vertex(canyon.x_pos + 40 + canyon.width, floorPos_y + 30);
     vertex(canyon.x_pos + canyon.width, floorPos_y);
     endShape();
+    // Gradient shadow: darker at bottom, lighter near top
+    const depthTop = floorPos_y + 35;
+    const depthBottom = floorPos_y + 180;
+    const innerLeft = canyon.x_pos + 10;
+    const innerRight = canyon.x_pos + canyon.width - 10;
+    const layers = 14;
+    const h = (depthBottom - depthTop) / layers;
+    noStroke();
+    push();
+    rectMode(CORNERS);
+    for (let i = 0; i < layers; i++) {
+        const y1 = depthTop + i * h;
+        const y2 = y1 + h + 1;
+        const t = i / (layers - 1);
+        const alpha = lerp(40, 200, t); // increase darkness with depth
+        const shrink = t * 12; // slight inward taper
+        fill(15, 10, 5, alpha);
+        rect(innerLeft + shrink, y1, innerRight - shrink, y2);
+    }
+    pop();
+}
+
+/** Soft distant rolling hill (parallax). */
+export function drawHill(hill) {
+    noStroke();
+    const baseY = state.floorPosY + 20; // slightly below floor for depth
+    fill(60, 170, 60, 180);
+    ellipse(hill.x, baseY, hill.radius * 2, hill.radius * 1.1);
+}
+
+/** Small ground rock with highlight. */
+export function drawRock(rock) {
+    noStroke();
+    fill(110, 105, 100);
+    ellipse(rock.x, state.floorPosY - 8, rock.size * 1.4, rock.size);
+    fill(160, 155, 150);
+    ellipse(rock.x - rock.size * 0.2, state.floorPosY - 10, rock.size * 0.6, rock.size * 0.35);
+}
+
+/** Tiny flower. */
+export function drawFlower(f) {
+    push();
+    translate(f.x, state.floorPosY - 4);
+    stroke(40, 120, 40);
+    strokeWeight(2);
+    line(0, 0, 0, -f.height);
+    noStroke();
+    const petalColors = [
+        [255, 200, 200], [255, 240, 150], [200, 220, 255], [255, 180, 240]
+    ];
+    const pc = petalColors[f.colorIndex % petalColors.length];
+    fill(...pc);
+    const r = f.height * 0.35;
+    for (let i = 0; i < 5; i++) {
+        const ang = (TWO_PI / 5) * i;
+        ellipse(cos(ang) * r, -f.height + sin(ang) * r, r * 1.1, r * 0.9);
+    }
+    fill(255, 215, 0);
+    ellipse(0, -f.height, r * 0.9, r * 0.9);
+    pop();
+}
+
+/** Small grass tuft. */
+export function drawGrassTuft(t) {
+    push();
+    translate(t.x, state.floorPosY);
+    stroke(50, 140, 50);
+    strokeWeight(2);
+    if (!t.blades) {
+        t.blades = [];
+        for (let i = 0; i < 5; i++) {
+            t.blades.push({ ang: map(i, 0, 4, -0.6, 0.6) + random(-0.1, 0.1), len: t.height * random(0.7, 1) });
+        }
+    }
+    for (const b of t.blades) line(0, 0, sin(b.ang) * 6, -b.len);
+    pop();
 }
 
 /** Render coin if not yet collected. */
@@ -105,9 +188,14 @@ export function drawCollectible(t_collectible) {
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
     // Background layers
+    // Distant hills (draw behind everything else except sky)
+    for (let i = 0; i < state.hills.length; i++) drawHill(state.hills[i]);
     for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
-    for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY);
+    for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
     for (let i = 0; i < state.treesX.length; i++) drawTree(state.treesX[i], state.floorPosY);
+    for (let i = 0; i < state.rocks.length; i++) drawRock(state.rocks[i]);
+    for (let i = 0; i < state.flowers.length; i++) drawFlower(state.flowers[i]);
+    for (let i = 0; i < state.grassTufts.length; i++) drawGrassTuft(state.grassTufts[i]);
     // Ground hazards
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
     // Platforms (above scenery so they are visible)

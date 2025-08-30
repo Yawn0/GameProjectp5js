@@ -50,6 +50,10 @@ export const state = {
     collectables: [],
     canyons: [],
     platforms: [],
+    hills: [], // distant parallax hills
+    rocks: [], // small ground rocks
+    flowers: [], // colorful flowers
+    grassTufts: [], // small grass clumps
     flagPole: null,
     lives: 0,
     particles: [], // win celebration particles

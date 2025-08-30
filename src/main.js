@@ -13,6 +13,9 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     state.collectables = [];
     state.canyons = [];
     state.platforms = [];
+    state.rocks = [];
+    state.flowers = [];
+    state.grassTufts = [];
     state.treesX = [];
 
     const playerStartX = CANVAS_WIDTH / 2; // starting x
@@ -154,6 +157,49 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         state.treesX.push(tx);
     }
     state.treesX.sort((a,b)=>a-b);
+
+    // Scatter rocks (avoid canyons & safe zone)
+    const rockTarget = 30;
+    let rockAttempts = 0;
+    while (state.rocks.length < rockTarget && rockAttempts < rockTarget * 20) {
+        rockAttempts++;
+        const rx = random(WORLD_WIDTH);
+        if (rx > safeLeft - 30 && rx < safeRight + 30) continue;
+        let overCanyon = false;
+        for (const can of state.canyons) { if (rx > can.x_pos && rx < can.x_pos + can.width) { overCanyon = true; break; } }
+        if (overCanyon) continue;
+        state.rocks.push({ x: rx, size: random(10, 20) });
+    }
+
+    // Flowers (lighter density, before flag pole area center bias)
+    const flowerTarget = 25;
+    let flowerAttempts = 0;
+    while (state.flowers.length < flowerTarget && flowerAttempts < flowerTarget * 25) {
+        flowerAttempts++;
+        const fx = random(flagPoleX - 80); // mostly before flag
+        if (fx > safeLeft - 25 && fx < safeRight + 25) continue;
+        let bad = false;
+        for (const can of state.canyons) { if (fx > can.x_pos - 10 && fx < can.x_pos + can.width + 10) { bad = true; break; } }
+        if (bad) continue;
+        state.flowers.push({ x: fx, height: random(12, 22), colorIndex: floor(random(1000)) });
+    }
+
+    // Grass tufts (higher density filler) excluding canyons
+    const grassTarget = 60;
+    let grassAttempts = 0;
+    while (state.grassTufts.length < grassTarget && grassAttempts < grassTarget * 30) {
+        grassAttempts++;
+        const gx = random(WORLD_WIDTH);
+        if (gx > safeLeft - 20 && gx < safeRight + 20) continue;
+        let overCan = false;
+        for (const can of state.canyons) { if (gx > can.x_pos - 15 && gx < can.x_pos + can.width + 15) { overCan = true; break; } }
+        if (overCan) continue;
+        // Spacing: avoid clustering too tight
+        let close = false;
+        for (const t of state.grassTufts) { if (abs(t.x - gx) < 18) { close = true; break; } }
+        if (close) continue;
+        state.grassTufts.push({ x: gx, height: random(10, 20) });
+    }
 }
 
 function generateBackdrop() {
@@ -166,6 +212,12 @@ function generateBackdrop() {
     state.mountains = [];
     const mountainCount = 8;
     for (let i = 0; i < mountainCount; i++) { state.mountains.push({ x_pos: random(WORLD_WIDTH), width: random(0.6, 1.3) }); }
+    // Distant hills (broad parallax shapes)
+    state.hills = [];
+    const hillCount = 6;
+    for (let i = 0; i < hillCount; i++) {
+        state.hills.push({ x: random(WORLD_WIDTH), radius: random(180, 320) });
+    }
 }
 
 function startGame() {
