@@ -11,7 +11,9 @@ Modules:
 - `character.js` – Pose rendering (animation variants) for the player character.
 - `gameplay.js` – Input mapping, physics integration (gravity, jump, drop‑through platforms), scoring, win/lose checks, particle spawning on win.
 - `hud.js` – Screen‑space UI (lives, score, music toggle button, start screen overlay, win/lose banners).
-- `main.js` – p5 lifecycle (`setup`, `draw`), procedural generation pipeline, camera update, and orchestration of per‑frame steps.
+- `generation.js` – All procedural generation & restart logic (world width randomization, content density scaling, backdrop + entities population). Pure state mutation, no rendering.
+- `main.js` – p5 lifecycle (`setup`, `draw`) + per‑frame orchestration (camera, wind, collision loops). Delegates generation to `generation.js` to stay lean.
+- `hazards.js` – Focused hazard handlers (currently worm collision + splash spawning & life penalty) to keep the main loop readable.
 
 See `TECH_NOTES.md` for deeper implementation details.
 
