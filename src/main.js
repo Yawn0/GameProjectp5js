@@ -33,41 +33,36 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     const FLAG_SAFE_MARGIN = 120; // extra horizontal space kept clear around flag pole
     while (state.canyons.length < numCanyons && attempts < MAX_ATTEMPTS) {
         attempts++;
-        const canyonWidth = random(MIN_CANYON_WIDTH, MAX_CANYON_WIDTH);
-        const x = random(0, WORLD_WIDTH - canyonWidth);
-        const left = x;
-        const right = x + canyonWidth;
-        // Avoid safe zone
-        if (!(right < safeLeft || left > safeRight)) continue;
-        // Avoid end-game flag pole area (no canyon under/near flag pole). Account for draw overhang (-20, +40) plus margin.
-        const canyonDrawLeft = left - 20;
-        const canyonDrawRight = right + 40;
+        const width = random(MIN_CANYON_WIDTH, MAX_CANYON_WIDTH);
+        const x = random(0, WORLD_WIDTH - width);
+        const left = x, right = x + width;
+        const inSafeZone = right >= safeLeft && left <= safeRight;
+        if (inSafeZone) continue;
         const flagMin = flagPoleX - FLAG_SAFE_MARGIN;
         const flagMax = flagPoleX + FLAG_SAFE_MARGIN;
-        const overlapsFlagRegion = !(canyonDrawRight < flagMin || canyonDrawLeft > flagMax);
+        const canyonDrawLeft = left - 20;
+        const canyonDrawRight = right + 40;
+        const overlapsFlagRegion = canyonDrawRight >= flagMin && canyonDrawLeft <= flagMax;
         if (overlapsFlagRegion) continue;
-        // Check spacing vs existing
-        let invalid = false;
+        let tooClose = false;
         for (const existing of state.canyons) {
             const eLeft = existing.x_pos;
             const eRight = existing.x_pos + existing.width;
-            const tooClose = !(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left);
-            if (tooClose) { invalid = true; break; }
+            if (!(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left)) { tooClose = true; break; }
         }
-        if (invalid) continue;
-        state.canyons.push(new Canyon(x, canyonWidth));
+        if (tooClose) continue;
+        state.canyons.push(factory.canyon(x, width));
     }
 
     // Platforms over wide canyons first layer (only for canyons >= 90px)
     const firstLayerY = state.floorPosY - 60;
     const secondLayerY = firstLayerY - 50;
     for (const can of state.canyons) {
-        if (can.width >= 90) {
-            const margin = 20;
-            const pX = max(0, can.x_pos - margin);
-            const pWidth = min(WORLD_WIDTH - pX, can.width + margin * 2);
-            state.platforms.push(new Platform(pX, firstLayerY, pWidth, 12, 0));
-        }
+        if (can.width < 90) continue;
+        const margin = 20;
+        const pX = max(0, can.x_pos - margin);
+        const pWidth = min(WORLD_WIDTH - pX, can.width + margin * 2);
+        state.platforms.push(factory.platform(pX, firstLayerY, pWidth, 12, 0));
     }
 
     // Extra random platforms (avoid flag pole zone)
@@ -101,17 +96,15 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
             if (p.level === level && x < p.x_pos + p.width + 40 && x + w > p.x_pos - 40) { overlaps = true; break; }
         }
         if (overlaps) continue;
-        state.platforms.push(new Platform(x, y, w, 12, level));
+    state.platforms.push(factory.platform(x, y, w, 12, level));
     }
 
     // Collectibles on platforms (max one per platform, 60% chance)
     for (const p of state.platforms) {
-        if (random() < 0.6) {
-            const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
-            if (cx < flagPoleX - 40) { // keep a little gap before pole
-                state.collectables.push(new Collectible(cx, p.y_pos));
-            }
-        }
+    if (random() >= 0.6) continue;
+    const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
+    if (cx >= flagPoleX - 40) continue; // keep a little gap before pole
+    state.collectables.push(factory.collectible(cx, p.y_pos));
     }
 
     // Ground collectibles (avoid canyons & safe zone)
@@ -119,14 +112,12 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     let groundAttempts = 0;
     while (groundToPlace > 0 && groundAttempts < 400) {
         groundAttempts++;
-    const x = random(flagPoleX - 60); // only before flag
+        const x = random(flagPoleX - 60); // only before flag
         if (x >= safeLeft && x <= safeRight) continue;
         let overCanyon = false;
-        for (const can of state.canyons) {
-            if (x > can.x_pos && x < can.x_pos + can.width) { overCanyon = true; break; }
-        }
+        for (const can of state.canyons) { if (x > can.x_pos && x < can.x_pos + can.width) { overCanyon = true; break; } }
         if (overCanyon) continue;
-        state.collectables.push(new Collectible(x, state.floorPosY));
+        state.collectables.push(factory.collectible(x, state.floorPosY));
         groundToPlace--;
     }
 
@@ -169,7 +160,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         let overCanyon = false;
         for (const can of state.canyons) { if (rx > can.x_pos && rx < can.x_pos + can.width) { overCanyon = true; break; } }
         if (overCanyon) continue;
-        state.rocks.push({ x: rx, size: random(10, 20) });
+    state.rocks.push(factory.rock(rx, random(10, 20)));
     }
 
     // Flowers (lighter density, before flag pole area center bias)
@@ -182,7 +173,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         let bad = false;
         for (const can of state.canyons) { if (fx > can.x_pos - 10 && fx < can.x_pos + can.width + 10) { bad = true; break; } }
         if (bad) continue;
-        state.flowers.push({ x: fx, height: random(12, 22), colorIndex: floor(random(1000)) });
+    state.flowers.push(factory.flower(fx, random(12, 22), floor(random(1000))));
     }
 
     // Grass tufts (higher density filler) excluding canyons
@@ -199,7 +190,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         let close = false;
         for (const t of state.grassTufts) { if (abs(t.x - gx) < 18) { close = true; break; } }
         if (close) continue;
-        state.grassTufts.push({ x: gx, height: random(10, 20) });
+    state.grassTufts.push(factory.grassTuft(gx, random(10, 20)));
     }
 
     // Worms: small crawling critters on ground (avoid canyons & safe zone)
@@ -212,7 +203,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
-        state.worms.push({ x: wx, y: state.floorPosY - 6, segmentCount: floor(random(4, 7)), dir: random([-1,1]), speed: random(0.08, 0.15), phase: random(TWO_PI) }); 
+    state.worms.push(factory.worm(wx, state.floorPosY - 6, floor(random(4, 7)), random([-1,1]), random(0.08, 0.15), random(TWO_PI))); 
     }
 }
 

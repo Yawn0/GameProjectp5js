@@ -114,19 +114,19 @@ export function drawCharacter() {
 }
 
 /** Collect coin when player overlaps. */
-export function checkCollectable(t_collectible) {
+export function checkCollectable(collectible) {
     const gameCharacter = state.gameChar;
-    if (dist(gameCharacter.x, gameCharacter.y, t_collectible.x_pos, t_collectible.y_pos) < 20) {
+    if (dist(gameCharacter.x, gameCharacter.y, collectible.x_pos, collectible.y_pos) < 20) {
         state.sound.COLLECT.play();
-        t_collectible.isFound = true;
+        collectible.isFound = true;
         state.gameScore++;
     }
 }
 
 /** Trigger plummet when over canyon gap. */
-export function checkCanyon(t_canyon) {
+export function checkCanyon(canyon) {
     const gameCharacter = state.gameChar;
-    const isOverCanyon = gameCharacter.x > t_canyon.x_pos && gameCharacter.x < t_canyon.x_pos + t_canyon.width && gameCharacter.y >= state.floorPosY;
+    const isOverCanyon = gameCharacter.x > canyon.x_pos && gameCharacter.x < canyon.x_pos + canyon.width && gameCharacter.y >= state.floorPosY;
     if (isOverCanyon) {
         if (!gameCharacter.isPlummeting) {
             gameCharacter.isPlummeting = true;

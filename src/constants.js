@@ -52,18 +52,18 @@ export const state = {
     collectables: [],
     canyons: [],
     platforms: [],
-    hills: [], // distant parallax hills
-    rocks: [], // small ground rocks
-    flowers: [], // colorful flowers
-    grassTufts: [], // small grass clumps
-    worms: [], // crawling ground critters
-    windSwishes: [], // transient visual wind streaks
+    hills: [],        // distant parallax hills
+    rocks: [],        // small ground rocks
+    flowers: [],      // colorful flowers
+    grassTufts: [],   // small grass clumps
+    worms: [],        // crawling ground critters
+    windSwishes: [],  // transient visual wind streaks
     flagPole: null,
     lives: 0,
-    particles: [], // win celebration particles
-    winFrame: null // frameCount when flag reached
-    ,loseFrame: null // frameCount when game lost
-    ,windPhase: 0 // evolving phase used to sample noise for wind
-    ,windValue: 0 // current normalized wind strength (-1..1)
+    particles: [],    // win celebration particles
+    winFrame: null,   // frameCount when flag reached
+    loseFrame: null,  // frameCount when game lost
+    windPhase: 0,     // evolving phase used to sample noise for wind
+    windValue: 0      // current normalized wind strength (-1..1)
 };
 

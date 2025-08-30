@@ -71,10 +71,19 @@ export class FlagPole {
 
 // Factories mimic former literal object creation; randomness preserved
 export const factory = {
-    collectible: (y) => new Collectible(random(WORLD_WIDTH), y),
-    canyon: () => new Canyon(random(WORLD_WIDTH)),
+    collectible: (x, y, size) => new Collectible(x, y, size),
+    randomCollectible: (y) => new Collectible(random(WORLD_WIDTH), y),
+    canyon: (x, w) => new Canyon(x, w),
+    randomCanyon: () => new Canyon(random(WORLD_WIDTH)),
     clouds: (coords) => generateClouds(coords), // relies on world.js exported fn
     platform: (x, y, w, h, level) => new Platform(x, y, w, h, level),
     flagPole: (x, y) => new FlagPole(x, y),
-    gameChar: (floorY) => new GameCharacter(width / 2, floorY)
+    gameChar: (floorY) => new GameCharacter(width / 2, floorY),
+    // Simple value-object helpers for scenery bits
+    tree: (x) => ({ x }),
+    rock: (x, size) => ({ x, size }),
+    flower: (x, height, colorIndex) => ({ x, height, colorIndex }),
+    grassTuft: (x, height) => ({ x, height }),
+    worm: (x, y, segmentCount, dir, speed, phase) => ({ x, y, segmentCount, dir, speed, phase }),
+    mountain: (x_pos, width) => ({ x_pos, width })
 };
