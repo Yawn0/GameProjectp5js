@@ -30,18 +30,19 @@ export function drawCloud(cloud) {
     const base = cloud.light || 235;
     const shadow = max(160, base - 55);
     const highlight = min(255, base + 12);
+    const windOffsetY = state.windValue * 6 * sin((cloud.x + frameCount * 0.6) * 0.0025);
 
     // Subtle shadow (draw first)
     fill(shadow, 140);
-    ellipse(cloud.x + cloud.width * 0.15, cloud.y + cloud.height * 0.12, cloud.width * 0.95, cloud.height * 0.78);
+    ellipse(cloud.x + cloud.width * 0.15, cloud.y + cloud.height * 0.12 + windOffsetY, cloud.width * 0.95, cloud.height * 0.78);
 
     // Main body
     fill(base, 235);
-    ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
+    ellipse(cloud.x, cloud.y + windOffsetY, cloud.width, cloud.height);
 
     // Highlight (top-left)
     fill(highlight, 220);
-    ellipse(cloud.x - cloud.width * 0.18, cloud.y - cloud.height * 0.18, cloud.width * 0.55, cloud.height * 0.45);
+    ellipse(cloud.x - cloud.width * 0.18, cloud.y - cloud.height * 0.18 + windOffsetY, cloud.width * 0.55, cloud.height * 0.45);
 
     // Horizontal drift
     if (cloud.speed) {
@@ -72,14 +73,15 @@ export function drawMountain(mountain, floorPos_y, camX) {
 
 /** Stylized layered pine tree. */
 export function drawTree(treePos_x, treePos_y) {
+    const sway = state.windValue * 8; // increased horizontal sway
     fill(140, 70, 20);
-    rect(treePos_x, treePos_y, 40, -150);
+    rect(treePos_x + sway * 0.2, treePos_y, 40, -150);
     fill(100, 160, 35);
-    triangle(treePos_x - 40, treePos_y - 60, treePos_x + 20, treePos_y - 120, treePos_x + 80, treePos_y - 60);
+    triangle(treePos_x - 40 + sway, treePos_y - 60, treePos_x + 20 + sway, treePos_y - 120, treePos_x + 80 + sway, treePos_y - 60);
     fill(100, 170, 35);
-    triangle(treePos_x - 30, treePos_y - 95, treePos_x + 20, treePos_y - 150, treePos_x + 70, treePos_y - 95);
+    triangle(treePos_x - 30 + sway * 1.1, treePos_y - 95, treePos_x + 20 + sway * 1.1, treePos_y - 150, treePos_x + 70 + sway * 1.1, treePos_y - 95);
     fill(100, 180, 35);
-    triangle(treePos_x - 20, treePos_y - 125, treePos_x + 20, treePos_y - 180, treePos_x + 60, treePos_y - 125);
+    triangle(treePos_x - 20 + sway * 1.2, treePos_y - 125, treePos_x + 20 + sway * 1.2, treePos_y - 180, treePos_x + 60 + sway * 1.2, treePos_y - 125);
 }
 
 /** Jagged canyon polygon hazard. */
@@ -136,10 +138,11 @@ export function drawRock(rock) {
 /** Tiny flower. */
 export function drawFlower(f) {
     push();
-    translate(f.x, state.floorPosY - 4);
+    const sway = state.windValue * 10;
+    translate(f.x + sway * 0.6, state.floorPosY - 4);
     stroke(40, 120, 40);
     strokeWeight(2);
-    line(0, 0, 0, -f.height);
+    line(0, 0, sway * 0.3, -f.height);
     noStroke();
     const petalColors = [
         [255, 200, 200], [255, 240, 150], [200, 220, 255], [255, 180, 240]
@@ -159,7 +162,8 @@ export function drawFlower(f) {
 /** Small grass tuft. */
 export function drawGrassTuft(t) {
     push();
-    translate(t.x, state.floorPosY);
+    const baseSway = state.windValue * 6;
+    translate(t.x + baseSway * 0.2, state.floorPosY);
     stroke(50, 140, 50);
     strokeWeight(2);
     if (!t.blades) {
@@ -168,7 +172,10 @@ export function drawGrassTuft(t) {
             t.blades.push({ ang: map(i, 0, 4, -0.6, 0.6) + random(-0.1, 0.1), len: t.height * random(0.7, 1) });
         }
     }
-    for (const b of t.blades) line(0, 0, sin(b.ang) * 6, -b.len);
+    for (const b of t.blades) {
+        const dynamicLean = baseSway * 0.4;
+        line(0, 0, sin(b.ang) * 6 + dynamicLean, -b.len);
+    }
     pop();
 }
 

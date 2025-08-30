@@ -62,5 +62,7 @@ export const state = {
     particles: [], // win celebration particles
     winFrame: null // frameCount when flag reached
     ,loseFrame: null // frameCount when game lost
+    ,windPhase: 0 // evolving phase used to sample noise for wind
+    ,windValue: 0 // current normalized wind strength (-1..1)
 };
 

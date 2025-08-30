@@ -257,6 +257,13 @@ window.draw = function draw() {
     background(100, 155, 255);
     // Simple camera follow
     state.cameraPosX = constrain(gameCharacter.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
+    // Evolve wind each frame (slow noise-based oscillation)
+    state.windPhase += 0.005; // faster evolution
+    // Use Perlin noise if available; fallback to sinusoidal
+    const noiseSample = (typeof noise === 'function') ? noise(state.windPhase) : (sin(state.windPhase) * 0.5 + 0.5);
+    // Map noise to target wind including gentle gust bias (ease toward edges)
+    const targetWind = map(noiseSample, 0, 1, -1, 1) * 1.2; // expand range a bit
+    state.windValue = lerp(state.windValue, constrain(targetWind, -1, 1), 0.05); // more responsive
     drawGround();
     push();
     translate(-state.cameraPosX, 0);
