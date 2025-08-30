@@ -69,7 +69,6 @@ Design Intent: Encourage careful jumping; ground rushing risks accidental worm k
 Possible Enhancements:
 - Temporary invulnerability after worm squish.
 - Bonus for avoiding worms entirely.
-- Flee response: worms reverse or dive underground when player close.
 
 ## 8. Splash & Win Particles
 Splash: 10 radial particles (precomputed lazily) + expanding ring. Life normalized param `t` drives radius + fade.
@@ -95,22 +94,8 @@ Possible Improvement: cross‑fade music changes or dynamic volume scaling with 
 ## 12. Start Screen Fade
 `showStartScreen` gate halts gameplay logic; on first key/mouse input → `showStartScreen=false`, `startScreenFade=1`. HUD draws overlay with alpha decaying each frame (handled in `hud.js`).
 
-## 13. Performance Considerations
-- Avoid per-frame allocation of arrays / objects inside tight loops (particles & splash reuse simple push/splice strategy).
-- Procedural generation only runs on start/reset.
-- Light math operations; no expensive per-segment pathfinding.
-
-## 14. Extension Ideas
+## 13. Extension Ideas
 - Add enemies with patrol + detection cones (reuse worm structure w/ AI state machine).
 - Power-ups: double jump (augment jump logic), shield (ignore first worm penalty), magnet (grow collectible pickup radius).
 - Time trials: track frameCount deltas between start & finish; scoreboard overlay.
 - Dynamic difficulty: scale platform density / canyon width with player performance.
-
-## 15. Testing Hooks
-Because creation funnel goes through `factory`, tests could monkey‑patch e.g. `factory.platform` to record parameters or inject deterministic values.
-
-## 16. Asset Considerations
-Local audio kept small (WAV for SFX, MP3 for music). Preload ensures ready before first interaction. For large worlds consider lazy streaming or sprite sheets.
-
----
-Last updated: (auto) current feature set including worm penalty + start screen warning.

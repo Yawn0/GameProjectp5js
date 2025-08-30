@@ -118,7 +118,7 @@ Mouse:
 - Click music button (top‑right) to mute/unmute.
 - Click restart button on win / game over banners.
 
-## Skills Practiced (first‑person, as the developer)
+## Skills Practiced
 - Modular ES module architecture & separation of concerns.
 - Factory pattern for consistent object creation & future extensibility.
 - Procedural generation with layered constraints (reachability, spacing, exclusion zones).
@@ -127,13 +127,6 @@ Mouse:
 - Particle & small animation systems (win burst, worm splash, wind sway) optimizing for readability.
 - State centralization + minimal object churn for performance.
 - Documentation: progressive commenting + deep dive in `TECH_NOTES.md`.
-
-## Running
-Open `index.html` via a local static server (recommended so audio loads reliably). All p5 libraries are bundled under `libraries/`.
-
-Optional quick static server examples:
-- VS Code Live Server extension
-- Python: `python -m http.server` (then browse to http://localhost:8000)
 
 ## Further Technical Details
 For deeper explanations (generation algorithm step order, particle lifecycle, wind math, performance considerations, and extension ideas) see `TECH_NOTES.md`.
