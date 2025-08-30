@@ -78,14 +78,17 @@ export function drawMountain(mountain, floorPos_y, camX) {
 export function drawTree(tree, treePos_y) {
     const x = tree.x;
     const sway = state.windValue * 8; // increased horizontal sway
+    const trunkHeight = 130; // shortened from 150 to keep base hidden when swaying
     fill(140, 70, 20);
-    rect(x + sway * 0.2, treePos_y, 40, -150);
+    rect(x + sway * 0.2, treePos_y, 40, -trunkHeight);
+    // Adjust foliage up slightly due to shorter trunk
+    const baseY = treePos_y - (150 - trunkHeight);
     fill(100, 160, 35);
-    triangle(x - 40 + sway, treePos_y - 60, x + 20 + sway, treePos_y - 120, x + 80 + sway, treePos_y - 60);
+    triangle(x - 40 + sway, baseY - 60, x + 20 + sway, baseY - 120, x + 80 + sway, baseY - 60);
     fill(100, 170, 35);
-    triangle(x - 30 + sway * 1.1, treePos_y - 95, x + 20 + sway * 1.1, treePos_y - 150, x + 70 + sway * 1.1, treePos_y - 95);
+    triangle(x - 30 + sway * 1.1, baseY - 95, x + 20 + sway * 1.1, baseY - 150, x + 70 + sway * 1.1, baseY - 95);
     fill(100, 180, 35);
-    triangle(x - 20 + sway * 1.2, treePos_y - 125, x + 20 + sway * 1.2, treePos_y - 180, x + 60 + sway * 1.2, treePos_y - 125);
+    triangle(x - 20 + sway * 1.2, baseY - 125, x + 20 + sway * 1.2, baseY - 180, x + 60 + sway * 1.2, baseY - 125);
 }
 
 /** Jagged canyon polygon hazard. */

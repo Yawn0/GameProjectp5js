@@ -14,8 +14,8 @@ export function getDirectionalKey(keyCode) {
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
     const gameCharacter = state.gameChar;
-    // Start background music if blocked earlier
-    if (state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
+    // Start background music only if enabled and not on start screen
+    if (!state.showStartScreen && state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
         try { state.sound.MUSIC.play(); } catch(e) {}
     }
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null || gameCharacter.isPlummeting) { return; }

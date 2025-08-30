@@ -5,7 +5,7 @@ import { state, CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
 export function drawLives() {
     for (let i = 0; i < state.lives; i++) {
         push();
-        translate(state.cameraPosX + 32 + i * 42, 36);
+        translate(32 + i * 42, 36); // screen-space now
         const scaleFactor = 1.1;
         scale(scaleFactor);
         stroke(0);
@@ -31,7 +31,7 @@ export function drawGameScore() {
     textSize(26);
     const textW = textWidth(label);
     const boxPaddingX = 14;
-    const xRight = state.cameraPosX + CANVAS_WIDTH - margin;
+    const xRight = CANVAS_WIDTH - margin; // screen-space
     const boxX = xRight - textW - boxPaddingX * 2;
     const boxY = 20;
     // Background badge
@@ -125,5 +125,67 @@ export function drawGameWin() {
     textSize(18);
     fill(255, 240);
     text('Press R to restart', CANVAS_WIDTH / 2, btnY + btnH + 32);
+    pop();
+}
+
+/** Music toggle button (screen-fixed, top-right). */
+export function drawMusicToggle() {
+    if (!state.sound || !state.sound.MUSIC) return;
+    const label = 'Music: ' + (state.musicEnabled ? 'ON' : 'OFF');
+    textSize(16);
+    const paddingX = 12;
+    const paddingY = 8;
+    const w = textWidth(label) + paddingX * 2;
+    const h = 34;
+    const x = CANVAS_WIDTH - w - 20; // screen-space
+    const y = 70; // below score
+    const hover = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+    noStroke();
+    fill(0, 0, 0, 140);
+    rect(x + 3, y + 3, w, h, 8);
+    fill( state.musicEnabled ? (hover ? 80 : 50) : (hover ? 150 : 120), state.musicEnabled ? 180 : 50, 70, 230);
+    stroke(0);
+    strokeWeight(2);
+    rect(x, y, w, h, 8);
+    noStroke();
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text(label, x + w / 2, y + h / 2 + 1);
+    // Store bounds for click detection
+    state._musicBtn = { x, y, w, h }; // store screen coords
+}
+
+/** Start screen overlay listing controls. Fades out on first key / click. */
+export function drawStartScreen() {
+    if (!state.showStartScreen && state.startScreenFade <= 0) return;
+    // Advance fade if hidden
+    if (!state.showStartScreen && state.startScreenFade > 0) {
+        state.startScreenFade = max(0, state.startScreenFade - 0.04);
+    }
+    const alpha = state.showStartScreen ? 1 : state.startScreenFade; // 1 while visible, then fade out
+    push();
+    resetMatrix();
+    noStroke();
+    fill(20, 30, 50, 220 * alpha);
+    rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    textAlign(LEFT, TOP);
+    fill(255, 240 * alpha);
+    const marginX = 80;
+    textSize(64);
+    text('BLOBBY ADVENTURE', marginX, 70);
+    textSize(22);
+    const lines = [
+        'Controls:',
+        'A / Left Arrow  - Move Left',
+        'D / Right Arrow - Move Right',
+        'W / Up Arrow / Space - Jump',
+        'S / Down Arrow - Drop through platform',
+        'R - Restart after win / game over',
+        'M - Toggle music (or click Music button)',
+        '',
+        'Press any key or click to start'
+    ];
+    let y = 170;
+    for (const l of lines) { text(l, marginX, y); y += 32; }
     pop();
 }

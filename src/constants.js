@@ -65,6 +65,11 @@ export const state = {
     winFrame: null,   // frameCount when flag reached
     loseFrame: null,  // frameCount when game lost
     windPhase: 0,     // evolving phase used to sample noise for wind
-    windValue: 0      // current normalized wind strength (-1..1)
+    windValue: 0,     // current normalized wind strength (-1..1)
+
+    // UI / meta state
+    showStartScreen: true,  // start instructions visible
+    startScreenFade: 0,     // 0..1 fade progress
+    musicEnabled: true      // user toggle for music
 };
 
