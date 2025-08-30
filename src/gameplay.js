@@ -7,6 +7,7 @@ export function getDirectionalKey(keyCode) {
     if (keyCode == 65 || keyCode == LEFT_ARROW) { return LEFT_ARROW; }
     if (keyCode == 68 || keyCode == RIGHT_ARROW) { return RIGHT_ARROW; }
     if (keyCode == 87 || keyCode == UP_ARROW || keyCode == 32) { return UP_ARROW; }
+    if (keyCode == 83 || keyCode == DOWN_ARROW) { return DOWN_ARROW; }
     return '';
 }
 
@@ -20,6 +21,11 @@ export function keyPressed() {
     else if (directionKey === UP_ARROW && !g.isFalling) {
         state.sound.JUMP.play();
         g.y -= JUMP_HEIGHT;
+    }
+    else if (directionKey === DOWN_ARROW) {
+        // Initiate drop-through: temporarily ignore platforms while moving down
+        g.dropThroughFrames = 15; // ~ quarter second at 60fps
+        g.y += 5; // nudge below platform surface
     }
 }
 
@@ -55,15 +61,18 @@ export function drawCharacter() {
     // Approximate character bottom as g.y, and horizontal bounds as body width * 0.5
     const halfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
     let onPlatform = false;
-    for (const p of state.platforms) {
-        const withinX = g.x + halfWidth > p.x_pos && g.x - halfWidth < p.x_pos + p.width;
-        const closeToTop = abs(g.y - p.y_pos) < 5; // tolerance for landing
-        const abovePlatform = g.y <= p.y_pos + 5; // not falling through from below
-        if (withinX && closeToTop && abovePlatform) {
-            g.y = p.y_pos; // snap to platform top
-            g.isFalling = false;
-            onPlatform = true;
-            break;
+    if (g.dropThroughFrames > 0) { g.dropThroughFrames--; }
+    else {
+        for (const p of state.platforms) {
+            const withinX = g.x + halfWidth > p.x_pos && g.x - halfWidth < p.x_pos + p.width;
+            const closeToTop = abs(g.y - p.y_pos) < 5; // tolerance for landing
+            const abovePlatform = g.y <= p.y_pos + 5; // not falling through from below
+            if (withinX && closeToTop && abovePlatform) {
+                g.y = p.y_pos; // snap to platform top
+                g.isFalling = false;
+                onPlatform = true;
+                break;
+            }
         }
     }
     if (!onPlatform && g.y < state.floorPosY) { g.isFalling = true; }

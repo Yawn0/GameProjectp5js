@@ -12,12 +12,14 @@ export class GameCharacter {
         this.isFalling = false;
         this.isPlummeting = false;
         this.isDead = false;
+    this.dropThroughFrames = 0; // frames remaining to ignore platforms
     }
     reset(floorY) {
         this.x = width / 2;
         this.y = floorY;
         this.isFalling = false;
         this.isPlummeting = false;
+    this.dropThroughFrames = 0;
     }
 }
 

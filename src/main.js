@@ -65,7 +65,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         }
     }
 
-    // Extra random platforms
+    // Extra random platforms (avoid flag pole zone)
     const EXTRA_PLATFORMS = 5;
     let platAttempts = 0;
     while (platAttempts < 400 && state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c => c.width >= 90).length) {
@@ -75,6 +75,9 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         const w = random(80, 180);
         const x = random(0, WORLD_WIDTH - w);
         if (!(x + w < safeLeft || x > safeRight)) continue; // avoid safe zone
+        // Avoid 100px flag pole safe zone
+        const FLAG_PLATFORM_SAFE = 100;
+        if (!(x + w < flagPoleX - FLAG_PLATFORM_SAFE || x > flagPoleX + FLAG_PLATFORM_SAFE)) continue;
     // Disallow platforms over canyons < 90px on first layer
         if (level === 0) {
             let overSmall = false;
