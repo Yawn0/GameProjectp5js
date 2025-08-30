@@ -1,4 +1,4 @@
-# Project Reflection
+## Project summary - Blobby adventure 
 
 This platformer expanded beyond a basic p5.js exercise into a miniature systems project. 
 ### Key extensions implemented: 
@@ -30,3 +30,6 @@ I've been working for years as a software developer so the key concepts were alr
 - Lightweight physics integration (velocity + gravity) and stateful animation posing.
 - Parallax layering & environmental motion for depth.
 - Particle system design (lifespans, normalized progress, reverse iteration pruning).
+
+
+Leonardo Tocchet
