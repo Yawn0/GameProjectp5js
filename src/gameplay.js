@@ -51,6 +51,23 @@ export function drawCharacter() {
     }
     else { g.isFalling = false; }
 
+    // Platform collision (landing)
+    // Approximate character bottom as g.y, and horizontal bounds as body width * 0.5
+    const halfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
+    let onPlatform = false;
+    for (const p of state.platforms) {
+        const withinX = g.x + halfWidth > p.x_pos && g.x - halfWidth < p.x_pos + p.width;
+        const closeToTop = abs(g.y - p.y_pos) < 5; // tolerance for landing
+        const abovePlatform = g.y <= p.y_pos + 5; // not falling through from below
+        if (withinX && closeToTop && abovePlatform) {
+            g.y = p.y_pos; // snap to platform top
+            g.isFalling = false;
+            onPlatform = true;
+            break;
+        }
+    }
+    if (!onPlatform && g.y < state.floorPosY) { g.isFalling = true; }
+
     for (let i = 0; i < state.canyons.length; i++) { checkCanyon(state.canyons[i]); }
 
     if (g.isPlummeting) {

@@ -38,6 +38,17 @@ export class Canyon {
     }
 }
 
+// Walkable horizontal platform
+export class Platform {
+    constructor(x, y, width = 120, height = 12, level = 0) {
+        this.x_pos = x;
+        this.y_pos = y; // top surface Y
+        this.width = width;
+        this.height = height;
+        this.level = level; // 0 = first layer, 1 = second layer, etc.
+    }
+}
+
 // Level completion trigger
 export class FlagPole {
     constructor(x, y, width = 10, height = 100) {
@@ -54,6 +65,7 @@ export const factory = {
     collectible: (y) => new Collectible(random(width), y),
     canyon: () => new Canyon(random(width)),
     clouds: (coords) => generateClouds(coords), // relies on world.js exported fn
+    platform: (x, y, w, h, level) => new Platform(x, y, w, h, level),
     flagPole: (x, y) => new FlagPole(x, y),
     gameChar: (floorY) => new GameCharacter(width / 2, floorY)
 };

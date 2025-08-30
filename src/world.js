@@ -80,8 +80,18 @@ export function drawCollectible(t_collectible) {
 
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
-    for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
+    // Background layers
+    for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY);
     for (let i = 0; i < state.treesX.length; i++) drawTree(state.treesX[i], state.floorPosY);
-    for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
+    // Ground hazards
+    for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
+    // Platforms (above scenery so they are visible)
+    for (let i = 0; i < state.platforms.length; i++) {
+        const p = state.platforms[i];
+        stroke(120, 100, 20, 120);
+        strokeWeight(2);
+        fill(230, 210, 40);
+        rect(p.x_pos, p.y_pos, p.width, p.height, 3);
+    }
 }

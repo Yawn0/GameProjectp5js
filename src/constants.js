@@ -47,6 +47,7 @@ export const state = {
     mountains: [],
     collectables: [],
     canyons: [],
+    platforms: [],
     flagPole: null,
     lives: 0
 };

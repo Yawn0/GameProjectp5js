@@ -1,6 +1,6 @@
 /* Main entry module: orchestrates p5 lifecycle using imported modules + shared state */
 import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, state } from './constants.js';
-import { factory, Collectible, Canyon } from './entities.js';
+import { factory, Collectible, Canyon, Platform } from './entities.js';
 import { drawGround, drawScenery, drawCollectible } from './world.js';
 import { drawCharacter, checkPlayerDie, drawLives, drawGameScore, drawFinishLine, drawGameOver, drawGameWin, checkCollectable } from './gameplay.js';
 
@@ -17,6 +17,7 @@ export function keyReleased() { gameplayKeyReleased(); }
 function generateLevelContent({ numCollectibles = 4, numCanyons = 2 } = {}) {
     state.collectables = [];
     state.canyons = [];
+    state.platforms = [];
 
     // --- Collectibles (placed first so canyons avoid them) ---
     const playerStartX = width / 2; // spawn
@@ -24,18 +25,7 @@ function generateLevelContent({ numCollectibles = 4, numCanyons = 2 } = {}) {
     const safeLeft = playerStartX - SAFE_RADIUS;
     const safeRight = playerStartX + SAFE_RADIUS;
 
-    for (let i = 0; i < numCollectibles; i++) {
-        let attempts = 0;
-        let placed = false;
-        while (!placed && attempts < 200) {
-            attempts++;
-            const x = random(width);
-            if (x >= safeLeft && x <= safeRight) continue; // respect safe zone
-            const c = new Collectible(x, state.floorPosY);
-            state.collectables.push(c);
-            placed = true;
-        }
-    }
+    // We'll spawn collectibles later (after platforms) so some can appear over platforms.
 
     // --- Canyons with constraints ---
     const MIN_CANYON_GAP = 100; // requirement #3
@@ -73,6 +63,68 @@ function generateLevelContent({ numCollectibles = 4, numCanyons = 2 } = {}) {
         if (invalid) continue;
 
         state.canyons.push(new Canyon(x, canyonWidth));
+    }
+
+    // --- Platforms ---
+    // First layer: y = floor - 60, must cover each canyon wider than 60px at least partially
+    const firstLayerY = state.floorPosY - 60;
+    const secondLayerY = firstLayerY - 50; // second layer 50px above first
+
+    for (const can of state.canyons) {
+        if (can.width > 60) {
+            // Create a platform spanning the canyon with a little margin
+            const margin = 20;
+            const pX = max(0, can.x_pos - margin);
+            const pWidth = min(width - pX, can.width + margin * 2);
+            state.platforms.push(new Platform(pX, firstLayerY, pWidth, 12, 0));
+        }
+    }
+
+    // Additional random platforms (first and second layers)
+    const EXTRA_PLATFORMS = 3;
+    let platAttempts = 0;
+    while (state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c=>c.width>60).length && platAttempts < 200) {
+        platAttempts++;
+        const level = random() < 0.5 ? 0 : 1; // choose layer
+        const y = level === 0 ? firstLayerY : secondLayerY;
+        const w = random(80, 160);
+        const x = random(0, width - w);
+        // Avoid safe zone
+        if (!(x + w < safeLeft || x > safeRight)) continue;
+        // Avoid heavy overlap with existing platforms on same layer
+        let overlaps = false;
+        for (const p of state.platforms) {
+            if (p.level === level) {
+                if (x < p.x_pos + p.width + 40 && x + w > p.x_pos - 40) { overlaps = true; break; }
+            }
+        }
+        if (overlaps) continue;
+        state.platforms.push(new Platform(x, y, w, 12, level));
+    }
+
+    // --- Collectibles (ground + platform) ---
+    // One collectible per platform (optional) + some on ground
+    for (const p of state.platforms) {
+        if (random() < 0.6) { // 60% chance to place collectible on platform
+            const x = random(p.x_pos + 20, p.x_pos + p.width - 20);
+            state.collectables.push(new Collectible(x, p.y_pos));
+        }
+    }
+    // Ground collectibles to reach target numCollectibles
+    let groundToPlace = numCollectibles;
+    let groundAttempts = 0;
+    while (groundToPlace > 0 && groundAttempts < 200) {
+        groundAttempts++;
+        const x = random(width);
+        if (x >= safeLeft && x <= safeRight) continue;
+        // Avoid spawning over canyons (so player can stand to collect) unless platform above
+        let overCanyon = false;
+        for (const can of state.canyons) {
+            if (x > can.x_pos && x < can.x_pos + can.width) { overCanyon = true; break; }
+        }
+        if (overCanyon) continue;
+        state.collectables.push(new Collectible(x, state.floorPosY));
+        groundToPlace--;
     }
 }
 
