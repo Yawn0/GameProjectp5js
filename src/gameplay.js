@@ -256,11 +256,24 @@ export function drawGameOver() {
     const elapsed = frameCount - state.loseFrame;
     const pulse = 0.5 + 0.5 * sin(elapsed * 0.12);
     textAlign(CENTER, CENTER);
-    textSize(72 + pulse * 8);
-    stroke(40, 0, 0, 180);
-    strokeWeight(8);
+    const baseSizeGO = 72;
+    textSize(baseSizeGO);
+    const scalePulse = 1 + pulse * 0.05; // gentle scale instead of re-rasterizing font size each frame
+    push();
+    translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    scale(scalePulse);
+    // Soft shadow
+    noStroke();
+    fill(20,0,0,160);
+    text('GAME OVER', 4, 6);
+    // Main outline using rounded joins to prevent spikes
+    stroke(40,0,0,200);
+    strokeWeight(5);
+    strokeJoin(ROUND);
+    strokeCap(ROUND);
     fill(lerpColor(color(180,0,0), color(255,90,90), pulse));
-    text('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    text('GAME OVER', 0, 0);
+    pop();
     // Restart button
     const btnW = 220, btnH = 60;
     const btnX = CANVAS_WIDTH / 2 - btnW / 2;
@@ -325,11 +338,24 @@ export function drawGameWin() {
     const pulse = 0.5 + 0.5 * sin(elapsed * 0.1);
     const gradient = lerpColor(color(255, 100, 150), color(255, 220, 80), pulse);
     textAlign(CENTER, CENTER);
-    textSize(72 + pulse * 8);
-    stroke(0, 150);
-    strokeWeight(6);
+    const baseSizeWin = 72;
+    textSize(baseSizeWin);
+    const scalePulseW = 1 + pulse * 0.05;
+    push();
+    translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    scale(scalePulseW);
+    // Shadow
+    noStroke();
+    fill(0,0,0,140);
+    text('GAME COMPLETED!', 4, 6);
+    // Main
+    stroke(0, 160);
+    strokeWeight(4.5);
+    strokeJoin(ROUND);
+    strokeCap(ROUND);
     fill(gradient);
-    text('GAME COMPLETED!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+    text('GAME COMPLETED!', 0, 0);
+    pop();
     // Restart button
     const btnW = 240, btnH = 60;
     const btnX = CANVAS_WIDTH / 2 - btnW / 2;
