@@ -10,7 +10,11 @@ export function keyPressed() { gameplayKeyPressed(); }
 export function keyReleased() { gameplayKeyReleased(); }
 
 // Procedural level generation (canyons, platforms, collectibles)
-function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX = WORLD_WIDTH - 150 } = {}) {
+function generateLevelContent({
+    numCollectibles = 3,
+    numCanyons = 8,
+    flagPoleX = WORLD_WIDTH - 150
+} = {}) {
     state.collectables = [];
     state.canyons = [];
     state.platforms = [];
@@ -26,11 +30,12 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     const safeRight = playerStartX + SAFE_RADIUS;
 
     // Canyons
-    const MIN_CANYON_GAP = 100;
+    const MIN_CANYON_GAP = 140; // slightly larger to avoid overcrowding in expanded world
     const MIN_CANYON_WIDTH = 60;
     const MAX_CANYON_WIDTH = 140;
     let attempts = 0;
-    const MAX_ATTEMPTS = 800;
+    const worldScale = WORLD_WIDTH / (CANVAS_WIDTH * 1.5);
+    const MAX_ATTEMPTS = 1200 * worldScale;
     const FLAG_SAFE_MARGIN = 120; // extra horizontal space kept clear around flag pole
     while (state.canyons.length < numCanyons && attempts < MAX_ATTEMPTS) {
         attempts++;
@@ -55,61 +60,96 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         state.canyons.push(factory.canyon(x, width));
     }
 
-    // Platforms over wide canyons first layer (only for canyons >= 90px)
-    const firstLayerY = state.floorPosY - 60;
-    const secondLayerY = firstLayerY - 50;
+    // Platform layout
+    const firstLayerY = state.floorPosY - 90;   // base elevated path
+    const secondLayerY = firstLayerY - 70;      // higher layer (requires support)
+
+    // 1) Canyon-spanning safety platforms (only where needed)
     for (const can of state.canyons) {
-        if (can.width < 90) continue;
+        if (can.width < 90) continue; // only bridge wide gaps
         const margin = 20;
         const pX = max(0, can.x_pos - margin);
         const pWidth = min(WORLD_WIDTH - pX, can.width + margin * 2);
         state.platforms.push(factory.platform(pX, firstLayerY, pWidth, 12, 0));
     }
 
-    // Extra random platforms (avoid flag pole zone)
-    const EXTRA_PLATFORMS = 5;
-    let platAttempts = 0;
-    while (platAttempts < 400 && state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c => c.width >= 90).length) {
-        platAttempts++;
-    // Lower probability for second layer (e.g., 25%)
-    const level = random() < 0.75 ? 0 : 1;
-        const y = level === 0 ? firstLayerY : secondLayerY;
-        const w = random(80, 180);
+    // 2) Additional sparse first-layer platforms
+    const FIRST_LAYER_EXTRA_TARGET = floor( (2 * worldScale) + 3 );
+    const FIRST_LAYER_MIN_GAP = 140;
+    let firstExtrasAttempts = 0;
+    while (state.platforms.filter(p=>p.level===0).length < FIRST_LAYER_EXTRA_TARGET + state.canyons.filter(c=>c.width>=90).length && firstExtrasAttempts < 500) {
+        firstExtrasAttempts++;
+        const w = random(90, 170);
         const x = random(0, WORLD_WIDTH - w);
-        if (!(x + w < safeLeft || x > safeRight)) continue; // avoid safe zone
-        // Avoid 100px flag pole safe zone
-        const FLAG_PLATFORM_SAFE = 100;
-        if (!(x + w < flagPoleX - FLAG_PLATFORM_SAFE || x > flagPoleX + FLAG_PLATFORM_SAFE)) continue;
-    // Disallow platforms over canyons < 90px on first layer
-        if (level === 0) {
-            let overSmall = false;
-            for (const can of state.canyons) {
-        if (can.width < 90) {
-                    const cLeft = can.x_pos;
-                    const cRight = can.x_pos + can.width;
-                    if (x < cRight && x + w > cLeft) { overSmall = true; break; }
-                }
+        if (!(x + w < safeLeft || x > safeRight)) continue; // avoid spawn safe zone
+        const FLAG_PLATFORM_SAFE = 120;
+        if (!(x + w < flagPoleX - FLAG_PLATFORM_SAFE || x > flagPoleX + FLAG_PLATFORM_SAFE)) continue; // avoid flag area
+        // Avoid overlapping small canyon mouths if canyon narrow
+        let invalid = false;
+        for (const can of state.canyons) {
+            if (can.width < 90) {
+                const cLeft = can.x_pos;
+                const cRight = can.x_pos + can.width;
+                if (x < cRight && x + w > cLeft) { invalid = true; break; }
             }
-            if (overSmall) continue;
         }
-        let overlaps = false;
+        if (invalid) continue;
+        // Spacing from existing first layer platforms
         for (const p of state.platforms) {
-            if (p.level === level && x < p.x_pos + p.width + 40 && x + w > p.x_pos - 40) { overlaps = true; break; }
+            if (p.level !== 0) continue;
+            const gap = (x + w) < p.x_pos ? p.x_pos - (x + w) : x - (p.x_pos + p.width);
+            if (gap < FIRST_LAYER_MIN_GAP && gap > -FIRST_LAYER_MIN_GAP) { invalid = true; break; }
         }
-        if (overlaps) continue;
-    state.platforms.push(factory.platform(x, y, w, 12, level));
+        if (invalid) continue;
+        state.platforms.push(factory.platform(x, firstLayerY, w, 12, 0));
     }
 
-    // Collectibles on platforms (max one per platform, 60% chance)
+    // 3) Second layer platforms: placed adjacent (not overlapping) to a lower platform within jump reach
+    const SECOND_LAYER_TARGET = floor(state.platforms.filter(p=>p.level===0).length * 0.3);
+    let secondAttempts = 0;
+    const firstLayerPlatforms = () => state.platforms.filter(p=>p.level===0);
+    const MAX_REACH_HORIZONTAL = 110; // safe horizontal reach based on jump physics
+    const MIN_GAP_ADJ = 20;           // spacing between edges (no overlap)
+    while (state.platforms.filter(p=>p.level===1).length < SECOND_LAYER_TARGET && secondAttempts < 800) {
+        secondAttempts++;
+        const bases = firstLayerPlatforms();
+        if (!bases.length) break;
+        const base = random(bases);
+        const w = constrain(base.width * random(0.35, 0.65), 60, 140);
+        const placeRight = random() < 0.5;
+        const gap = random(MIN_GAP_ADJ, MIN_GAP_ADJ + 60);
+        let x = placeRight ? base.x_pos + base.width + gap : base.x_pos - gap - w;
+        x = constrain(x, 0, WORLD_WIDTH - w);
+        const y = secondLayerY;
+        // Distance check to ensure within horizontal reach from some first-layer platform edge
+        const nearestFirst = bases.reduce((acc,p)=>{
+            const dx = p.x_pos + p.width < x ? x - (p.x_pos + p.width) : p.x_pos > x + w ? p.x_pos - (x + w) : 0; // horizontal separation (0 if overlapping)
+            return (dx < acc.dist) ? { dist: dx, plat: p } : acc;
+        }, { dist: Infinity, plat: null });
+        if (nearestFirst.dist > MAX_REACH_HORIZONTAL) continue; // too far to jump across
+        // Disallow any horizontal overlap with ANY existing platform (all levels)
+        let overlapsAny = false;
+        for (const p of state.platforms) {
+            const overlap = !(x + w <= p.x_pos || x >= p.x_pos + p.width); // strict non-overlap: touching edges allowed
+            if (overlap) { overlapsAny = true; break; }
+        }
+        if (overlapsAny) continue;
+        // Flag area exclusion
+        const FLAG_PLATFORM_SAFE = 120;
+        if (!(x + w < flagPoleX - FLAG_PLATFORM_SAFE || x > flagPoleX + FLAG_PLATFORM_SAFE)) continue;
+        state.platforms.push(factory.platform(x, y, w, 12, 1));
+    }
+
+    // Collectibles on platforms
     for (const p of state.platforms) {
-    if (random() >= 0.6) continue;
-    const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
-    if (cx >= flagPoleX - 40) continue; // keep a little gap before pole
-    state.collectables.push(factory.collectible(cx, p.y_pos));
+        if (random() >= 0.25) continue;
+        const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
+        if (cx >= flagPoleX - 40) continue; // keep a little gap before pole
+        state.collectables.push(factory.collectible(cx, p.y_pos));
     }
 
     // Ground collectibles (avoid canyons & safe zone)
-    let groundToPlace = numCollectibles;
+    let groundToPlace = floor(numCollectibles * worldScale);
     let groundAttempts = 0;
     while (groundToPlace > 0 && groundAttempts < 400) {
         groundAttempts++;
@@ -125,7 +165,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     // Trees (now part of dynamic content) - denser with soft clustering
     const treeMinGap = 85; // base minimum distance
     const treeFlagSafe = 120;
-    const treeCountTarget = max(40, floor(WORLD_WIDTH / 100)); // scale with world width
+    const treeCountTarget = max(80, floor(WORLD_WIDTH / 80)); // denser baseline in vast world
     let treeAttempts = 0;
     while (state.treesX.length < treeCountTarget && treeAttempts < treeCountTarget * 30) {
         treeAttempts++;
@@ -152,7 +192,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     state.treesX.sort((a,b)=>a-b);
 
     // Scatter rocks (avoid canyons & safe zone)
-    const rockTarget = 30;
+    const rockTarget = floor(50 * worldScale);
     let rockAttempts = 0;
     while (state.rocks.length < rockTarget && rockAttempts < rockTarget * 20) {
         rockAttempts++;
@@ -165,7 +205,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     }
 
     // Flowers (lighter density, before flag pole area center bias)
-    const flowerTarget = 25;
+    const flowerTarget = floor(40 * worldScale);
     let flowerAttempts = 0;
     while (state.flowers.length < flowerTarget && flowerAttempts < flowerTarget * 25) {
         flowerAttempts++;
@@ -178,7 +218,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     }
 
     // Grass tufts (higher density filler) excluding canyons
-    const grassTarget = 60;
+    const grassTarget = floor(110 * worldScale);
     let grassAttempts = 0;
     while (state.grassTufts.length < grassTarget && grassAttempts < grassTarget * 30) {
         grassAttempts++;
@@ -195,7 +235,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     }
 
     // Worms: small crawling critters on ground (avoid canyons & safe zone)
-    const wormCount = 4;
+    const wormCount = floor(6 * worldScale) + 3;
     let wormAttempts = 0;
     while (state.worms.length < wormCount && wormAttempts < wormCount * 40) {
         wormAttempts++;
@@ -211,16 +251,16 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
 function generateBackdrop() {
     // Clouds seed
     state.cloudsCoordinates = [];
-    const cloudCount = 12;
+    const cloudCount = floor(12 * (WORLD_WIDTH / (CANVAS_WIDTH * 1.5))) + 8;
     for (let i = 0; i < cloudCount; i++) { state.cloudsCoordinates.push({ x_pos: random(WORLD_WIDTH), y_pos: random(70, 130) }); }
     state.clouds = factory.clouds(state.cloudsCoordinates);
     // Mountains
     state.mountains = [];
-    const mountainCount = 8;
+    const mountainCount = floor(8 * (WORLD_WIDTH / (CANVAS_WIDTH * 1.5))) + 4;
     for (let i = 0; i < mountainCount; i++) { state.mountains.push({ x_pos: random(WORLD_WIDTH), width: random(0.6, 1.3) }); }
     // Distant hills (broad parallax shapes)
     state.hills = [];
-    const hillCount = 6;
+    const hillCount = floor(6 * (WORLD_WIDTH / (CANVAS_WIDTH * 1.5))) + 3;
     for (let i = 0; i < hillCount; i++) {
         state.hills.push({ x: random(WORLD_WIDTH), radius: random(180, 320) });
     }
