@@ -1,10 +1,10 @@
-/* Blobby pose renderers (no logic side-effects) */
+/* Blobby pose renderers */
 import { BLOBBY, state } from './constants.js';
 
 /** Idle / neutral pose */
 export function blobbyStandingFront() {
     const gameChar = state.gameChar;
-    // Joyful idle wobble (horizontal sway + slight lean) while standing
+    // Joyful idle wobble while standing
     const t = frameCount * 0.08; // phase speed
     const sway = sin(t) * 3; // horizontal offset
     const lean = sin(t + PI / 2) * 0.08; // small rotation

@@ -12,7 +12,7 @@ export function keyReleased() { gameplayKeyReleased(); }
 // Procedural level generation (canyons, platforms, collectibles)
 /**
  * generateLevelContent
- * Detailed doc in comment: fills state.* arrays via rejection sampling.
+ * fills state.* arrays via rejection sampling.
  */
 function generateLevelContent({
     numCollectibles = 3,
@@ -193,19 +193,16 @@ function generateLevelContent({
     const treeFlagSafe = 120;         // horizontal exclusion radius near flag
 
     /*
-        - floor(WORLD_WIDTH / a): scales count linearly so you get about 1 item per a horizontal pixels
+        - floor(WORLD_WIDTH / a): scales count linearly to get about 1 item per a horizontal pixels
         - max(n, ...): enforces a minimum of n so small worlds don't look barren
-        - floor: ensures an integer (array loop bound).
+        - floor: ensures an integer (array loop bound)
         
         Effect:
-            For WORLD_WIDTH < b → fixed at n (stable look in small/medium worlds).
-            Once WORLD_WIDTH ≥ b, count grows (e.g. 8000 → 100, 12000 → 150).
+            For WORLD_WIDTH < b → fixed at n (stable look in small/medium worlds)
+            Once WORLD_WIDTH ≥ b, count grows (e.g. 8000 → 100, 12000 → 150)
     */
-    // Foreground tree density tuning:
-    // Previously: max(80, floor(WORLD_WIDTH / 80)) which produced a very dense canopy.
-    // Reduce density by increasing divisor and lowering fixed minimum so small worlds are less crowded.
-    const TREE_MIN_BASE = 60;              // was 80
-    const TREE_DENSITY_DIVISOR = 110;      // was 80 (higher => fewer trees per horizontal span)
+    const TREE_MIN_BASE = 60;
+    const TREE_DENSITY_DIVISOR = 110;
     const treeCountTarget = max(TREE_MIN_BASE, floor(WORLD_WIDTH / TREE_DENSITY_DIVISOR));
 
     let treeAttempts = 0;
@@ -226,7 +223,7 @@ function generateLevelContent({
         }
         if (overCanyon) continue;
 
-        // Spacing to other trees with probabilistic acceptance for moderate distances
+        // Spacing to other trees with probabilistic acceptance to try applying moderate distances (i hope...)
         let tooClose = false;
         for (const existingTree of state.trees)
         {
@@ -271,8 +268,7 @@ function generateLevelContent({
     state.trees3.sort((a, b) => a.x - b.x);
 
     // Scatter rocks (avoid canyons & safe zone)
-    // Rock density tuning: previously 50 * worldScale (felt cluttered after reducing tree density)
-    const rockTarget = floor(32 * worldScale); // lowered multiplier for sparser rocks
+    const rockTarget = floor(32 * worldScale);
     let rockAttempts = 0;
     while (state.rocks.length < rockTarget && rockAttempts < rockTarget * 20)
     {
@@ -341,7 +337,7 @@ function generateLevelContent({
         state.grassTufts.push(factory.grassTuft(gx, random(10, 20)));
     }
 
-    // Worms: small crawling critters on ground (avoid canyons & safe zone)
+    // Worms (avoid canyons & safe zone)
     const wormCount = floor(6 * worldScale) + 3;
     let wormAttempts = 0;
     while (state.worms.length < wormCount && wormAttempts < wormCount * 40) {
@@ -392,7 +388,6 @@ function startGame()
     const flagPoleX = WORLD_WIDTH - 150;
     generateLevelContent({ flagPoleX });
     state.flagPole = factory.flagPole(flagPoleX, state.floorPosY);
-    state.windSwishes = [];
 }
 
 window.setup = function setup()
@@ -447,7 +442,7 @@ window.draw = function draw() {
     translate(-state.cameraPosX, 0);
     drawScenery();
 
-    // Worm collisions (character squishes worms when overlapping horizontally & near ground)
+    // Worm collisions
     if (!state.showStartScreen && !gameCharacter.isDead) {
         const charX = gameCharacter.x;
         for (let i = state.worms.length - 1; i >= 0; i--) {
@@ -501,7 +496,7 @@ window.draw = function draw() {
 
     pop();
 
-    // HUD (screen-space, after world pop)
+    // HUD
     drawLives();
     drawGameScore();
     drawMusicToggle();

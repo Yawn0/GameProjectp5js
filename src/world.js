@@ -1,17 +1,17 @@
 /* World generation + rendering helpers (ES module)
-    Responsible only for drawing world/background & decorative entities.
-    All positioning uses world coordinates; camera translation is applied in main draw loop.
+    Responsible only for drawing world/background & decorative entities
+    All positioning uses world coordinates; camera translation is applied in main draw loop
 */
 import { state, WORLD_WIDTH } from './constants.js';
 
-/** Draw ground strip. */
+/** Draw ground strip */
 export function drawGround() {
     noStroke();
     fill(0, 155, 0);
     rect(0, state.floorPosY, width, height - state.floorPosY);
 }
 
-/** Expand seed coordinates into fluffy cloud segments. */
+/** Expand seed coordinates into fluffy cloud segments */
 export function generateClouds(cloudsCoordinates) {
     const clouds = [];
     for (let i = 0; i < cloudsCoordinates.length; i++) {
@@ -60,7 +60,7 @@ export function drawCloud(cloud) {
 
 /** Composite triangle mountain with inner + snow layers. */
 export function drawMountain(mountain, floorPos_y, camX) {
-    // Much more subtle parallax (close to foreground speed)
+    // subtle parallax (close to foreground speed)
     const PARALLAX_FACTOR = 0.1; // 0=no movement, 1=normal; choose high for subtle effect
     const baseX = mountain.x_pos + camX * PARALLAX_FACTOR;
     noStroke();
@@ -69,7 +69,7 @@ export function drawMountain(mountain, floorPos_y, camX) {
     triangle(baseX, floorPos_y, baseX + (310 * mountain.width), 150, baseX + (620 * mountain.width), floorPos_y);
     fill(170, 170, 170);
     triangle(baseX + (40 * mountain.width), floorPos_y, baseX + (310 * mountain.width), 200, baseX + (550 * mountain.width), floorPos_y);
-    // Snow cap + subtle secondary patch (no vertical lines)
+    // Snow cap + subtle secondary patch
     fill(255);
     triangle(baseX + (250 * mountain.width), 250, baseX + (310 * mountain.width), 170, baseX + (365 * mountain.width), 250);
     fill(235);
@@ -96,16 +96,12 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
     const trunkHeight = 130 * scale * (full ? 1 : 0.8);
     fill(140, 70, 20, full ? 255 : 220);
     rect(px + sway * 0.15, groundY, trunkWidth, -trunkHeight);
-    // Foreground trees keep original layering formula. For distant layers we drop foliage so trunk top touches foliage base.
+    // Foreground trees keep original layering formula but for distant layers trunk top touches foliage base
     let baseY = groundY - (150 * scale - trunkHeight);
     if (!full) {
-        // Ensure first (bottom) simplified foliage triangle base aligns with trunk top.
-        // First simplified triangle bottom y = baseY - 60*scale - 10*scale (topOffset used below = 10*scale).
-        // Set that equal to trunk top (groundY - trunkHeight): solve for baseY.
-        // baseY = groundY - trunkHeight + 70*scale.
         baseY = groundY - trunkHeight + 70 * scale;
     }
-    // Foliage layers (simplified for distance)
+    // Foliage layers
     function tri(off, topOffset, wScale, hOffset, swayMul, col) {
         fill(col[0], col[1], col[2], full ? 255 : 230);
         triangle(
@@ -117,7 +113,7 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
             baseY - (60 * scale) - topOffset
         );
     }
-    // Color gradient shifts slightly with scale to create depth desaturation
+    // Color gradient shifts slightly with scale to trying create depth desaturation
     const baseCol = [100, 160, 35];
     const midCol = [100, 170, 35];
     const topCol = [100, 180, 35];
@@ -132,7 +128,7 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
     }
 }
 
-/** Jagged canyon polygon hazard. */
+/** Canyon polygon */
 export function drawCanyon(canyon, floorPos_y) {
     fill(139, 69, 19);
     beginShape();
@@ -293,7 +289,7 @@ export function drawWorm(worm) {
 
 /** Brief splash effect */
 export function drawSplash(s) {
-    // Lazily initialize particle rays (so factory stays lightweight)
+    // Lazily initializing particle rays (so factory stays lightweight? maybe?)
     if (!s.particles) {
         s.particles = [];
         for (let i = 0; i < 10; i++) {
@@ -337,7 +333,7 @@ export function drawScenery() {
             drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false); // slowest parallax
         }
     }
-    // 2. Atmospheric clouds (parallax + wrap)
+    // 2. Clouds (parallax + wrap)
     for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
     // 3. Mountains (slight parallax)
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
@@ -345,7 +341,7 @@ export function drawScenery() {
     if (state.trees2) {
         for (let i = 0; i < state.trees2.length; i++) {
             const t = state.trees2[i];
-            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false); // medium parallax (mountains use 0.1 too; we could slightly adjust)
+            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false); // medium parallax (same as mountains)
         }
     }
     // 5. Foreground trees layer 1 (no parallax shift, original dense set)

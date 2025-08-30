@@ -1,4 +1,4 @@
-/* Gameplay loop helpers: input, physics, scoring, UI (ES module) */
+/* Gameplay loop helpers: input, physics, scoring, UI*/
 import { BLOBBY, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state, GRAVITY_ACCEL, JUMP_VELOCITY } from './constants.js';
 import { blobbyJumpingLeft, blobbyJumpingRight, blobbyWalkingLeft, blobbyWalkingRight, blobbyJumping, blobbyStandingFront } from './character.js';
 
@@ -13,13 +13,13 @@ export function getDirectionalKey(keyCode) {
 
 /** Handle key down events (movement + jump).
  *  Order of checks:
- *   1. Lazy-start music when first gameplay input happens (avoids autoplay restrictions & start screen)
+ *   1. Start music when first gameplay input happens
  *   2. Ignore input if game already ended or plummeting (locks state)
  *   3. Map key to canonical direction; update directional flags OR perform jump / drop-through.
  *
  *  Drop-through mechanic:
  *   Setting dropThroughFrames > 0 makes landing logic temporarily ignore platforms so the
- *   player can descend intentionally. A slight +y nudge ensures we're below platform top next frame.
+ *   player can descend intentionally. Slight +y nudge ensures we're below platform top next frame.
  */
 export function keyPressed() {
     const gameCharacter = state.gameChar;
@@ -105,9 +105,9 @@ export function drawCharacter() {
     }
 
     // Platform collision (landing)
-    // Simplified approach: treat character as an AABB footprint whose vertical reference is gameCharacter.y.
-    // We only consider collisions when close to platform top (|dy| < 5) to avoid snapping from far below.
-    // Horizontal overlap test uses half body width. This keeps platform logic O(n) over current platforms.
+    // approximated character whose vertical reference is gameCharacter.y.
+    // considered only collisions when close to platform top (|dy| < 5) to avoid snapping from far below.
+    // Horizontal overlap test uses half body width.
     const characterHalfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
     let onPlatform = false;
     if (gameCharacter.dropThroughFrames > 0) { gameCharacter.dropThroughFrames--; }
@@ -115,7 +115,7 @@ export function drawCharacter() {
         for (const platform of state.platforms) {
             const withinX = gameCharacter.x + characterHalfWidth > platform.x_pos && gameCharacter.x - characterHalfWidth < platform.x_pos + platform.width;
             const closeToTop = abs(gameCharacter.y - platform.y_pos) < 5;  // vertical snap tolerance
-            const abovePlatform = gameCharacter.y <= platform.y_pos + 5;    // ensures we only land from above
+            const abovePlatform = gameCharacter.y <= platform.y_pos + 5;    // ensures only landing from above
             if (withinX && closeToTop && abovePlatform) {
                 // Landing resolution: snap, zero vertical speed, reset fall / plummet flags.
                 gameCharacter.y = platform.y_pos;
@@ -150,10 +150,10 @@ export function checkCollectable(collectible) {
     }
 }
 
-/** Trigger plummet when over canyon gap.
- *  Condition: horizontal inside canyon bounds AND standing on the floor (y >= floor).
- *  We deliberately require contact with floor to avoid triggering mid‑air when jumping over.
- *  Once triggered, sets isPlummeting and plays a one‑shot sound; later drawCharacter applies constant descent.
+/** Trigger plummet when over canyon gap
+ *  Condition: horizontal inside canyon bounds AND standing on the floor (y >= floor)
+ *  Contact required with floor to avoid triggering mid‑air when jumping over
+ *  Once triggered, sets isPlummeting and plays a one‑shot sound; later drawCharacter applies constant descent
  */
 export function checkCanyon(canyon) {
     const gameCharacter = state.gameChar;
@@ -170,7 +170,7 @@ export function checkCanyon(canyon) {
     }
 }
 
-/** Detect proximity to flag pole top (simple distance threshold on both axes). */
+/** Detect proximity to flag pole */
 export function checkFinishLine() {
     const gameCharacter = state.gameChar;
     const finishFlag = state.flagPole;
@@ -178,9 +178,9 @@ export function checkFinishLine() {
     if (isOverFinishLine) { finishFlag.isReached = true; }
 }
 
-/** Life loss + death state check.
- *  Falling below canvas bottom decrements lives; character is reset to spawn.
- *  Music stops only once when lives deplete -> loseFrame is stamped to freeze state & enable HUD overlay.
+/** Life loss + death state check
+ *  Falling below canvas bottom decrements lives; character is reset to spawn
+ *  Music stops only once when lives deplete -> loseFrame is stamped to freeze state & enable HUD overlay
  */
 export function checkPlayerDie() {
     const gameCharacter = state.gameChar;
@@ -204,9 +204,7 @@ export function checkPlayerDie() {
     }
 }
 
-// (HUD functions moved to hud.js)
-
-/** Draw pole and test for completion. */
+/** Draw pole and test for completion */
 export function drawFinishLine() {
     const f = state.flagPole;
     // Pole style
@@ -232,13 +230,12 @@ export function drawFinishLine() {
     if (!f.isReached) { checkFinishLine(); }
 }
 
-// (Win / Game Over banners moved to hud.js; particle spawn handled here when win triggered.)
-
+// particle spawn when win triggered
 export function ensureWinParticles() {
     if (state.winFrame === null) {
         state.winFrame = frameCount;
         state.sound.WIN.play();
-        // Initial celebratory burst: 120 particles with randomized velocities & hues.
+        // Initial celebratory burst with 120 particles
         for (let i = 0; i < 120; i++) {
             state.particles.push({
                 x: state.flagPole.x_pos + random(-40, 40),
@@ -253,7 +250,7 @@ export function ensureWinParticles() {
         // Assign maxLife after creation (cannot know individually before random)
         for (const p of state.particles) { if (!p.maxLife) p.maxLife = p.life; }
     }
-    // Drip-feed sparkle: every 5 frames add a new lighter particle for lingering celebration.
+    // Drip-feed sparkle: every 5 frames adds a lighter particle for celebration :)
     if (frameCount % 5 === 0) {
         state.particles.push({
             x: state.flagPole.x_pos,
@@ -267,7 +264,7 @@ export function ensureWinParticles() {
         const last = state.particles[state.particles.length - 1];
         last.maxLife = last.life;
     }
-    // Particle integration + pruning (iterate backwards for O(1) removals)
+    // Particle integration + pruning
     for (let i = state.particles.length - 1; i >= 0; i--) {
         const p = state.particles[i];
         p.x += p.vx;

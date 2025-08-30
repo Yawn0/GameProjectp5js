@@ -1,7 +1,7 @@
-/* Heads-Up Display (HUD) module: lives, score, end-state banners */
+/* HUD module: lives, score, end-state banners */
 import { state, CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
 
-/** Display remaining lives as hearts (screen-fixed). */
+/** Display remaining lives as hearts */
 export function drawLives() {
     for (let i = 0; i < state.lives; i++) {
         push();
@@ -24,7 +24,7 @@ export function drawLives() {
     }
 }
 
-/** Render current score HUD text (screen-fixed). */
+/** Render current score HUD text */
 export function drawGameScore() {
     const margin = 20;
     const label = 'Score: ' + state.gameScore;
@@ -49,7 +49,7 @@ export function drawGameScore() {
     text(label, boxX + boxPaddingX, boxY + 20);
 }
 
-/** Game over banner + restart button (screen space). */
+/** Game over banner + restart button */
 export function drawGameOver() {
     if (state.loseFrame === null) return; // not yet triggered
     push();
@@ -128,7 +128,7 @@ export function drawGameWin() {
     pop();
 }
 
-/** Music toggle button (screen-fixed, top-right). */
+/** Music toggle button */
 export function drawMusicToggle() {
     if (!state.sound || !state.sound.MUSIC) return;
     const label = 'Music: ' + (state.musicEnabled ? 'ON' : 'OFF');
@@ -155,7 +155,7 @@ export function drawMusicToggle() {
     state._musicBtn = { x, y, w, h }; // store screen coords
 }
 
-/** Start screen overlay listing controls. Fades out on first key / click. */
+/** Displays screen overlay listing controls. Fades out on first key / click. */
 export function drawStartScreen() {
     if (!state.showStartScreen && state.startScreenFade <= 0) return;
     // Advance fade if hidden

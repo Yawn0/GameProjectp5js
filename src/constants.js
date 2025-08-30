@@ -9,7 +9,7 @@ export const FLOOR_HEIGHT_RATIO = 3 / 4;
 export const JUMP_HEIGHT = 100;
 export const GRAVITY_SPEED = 3; // Blobby falls at this speed
 export const PLUMMET_SPEED = 6; // Blobby falls faster when plummeting
-// New physics parameters for smooth jump (velocity integration)
+// Physics parameters for smooth jump
 export const GRAVITY_ACCEL = 0.6; // per-frame downward acceleration
 export const JUMP_VELOCITY = 12; // initial upward speed (positive magnitude; applied as negative)
 
@@ -46,7 +46,7 @@ export const state = {
     gameChar: null,
     gameScore: 0,
     // Decorative & interactive collections
-    trees: [],       // tree objects (was treesX holding raw x positions)
+    trees: [],       // tree objects
     trees2: [],      // mid-layer parallax trees
     trees3: [],      // far-layer parallax trees
     cloudsCoordinates: [],
@@ -61,7 +61,6 @@ export const state = {
     grassTufts: [],   // small grass clumps
     worms: [],        // crawling ground critters
     splashes: [],     // temporary worm death splash effects
-    windSwishes: [],  // transient visual wind streaks
     flagPole: null,
     lives: 0,
     particles: [],    // win celebration particles

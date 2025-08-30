@@ -11,15 +11,15 @@ export class GameCharacter {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.vy = 0;                 // vertical velocity (integrated each frame)
+        this.vy = 0;                     // vertical velocity (integrated each frame)
         this.isLeft = false;
         this.isRight = false;
         this.isFalling = false;
         this.isPlummeting = false;
         this.isDead = false;
-        this.dropThroughFrames = 0;  // frames remaining to ignore platforms
+        this.dropThroughFrames = 0;      // frames remaining to ignore platforms
         this.plummetSoundPlayed = false; // prevent repeat sound spam
-        this.walkCycle = 0;          // phase accumulator for walking animation
+        this.walkCycle = 0;              // phase accumulator for walking animation
     }
     reset(floorY) {
         this.x = width / 2;
@@ -43,7 +43,6 @@ export class Collectible {
     }
 }
 
-// Gap hazard
 export class Canyon {
     constructor(x, width = 80) {
         this.x_pos = x;
@@ -55,7 +54,7 @@ export class Canyon {
 export class Platform {
     constructor(x, y, width = 120, height = 12, level = 0) {
         this.x_pos = x;
-        this.y_pos = y; // top surface Y
+        this.y_pos = y;     // top surface Y
         this.width = width;
         this.height = height;
         this.level = level; // 0 = first layer, 1 = second layer, etc. (used for spacing rules)
@@ -73,7 +72,7 @@ export class FlagPole {
     }
 }
 
-// Factories: single responsible point for creating entities / value objects.
+// Factories
 export const factory = {
     collectible: (x, y, size) => new Collectible(x, y, size),
     randomCollectible: (y) => new Collectible(random(WORLD_WIDTH), y),
