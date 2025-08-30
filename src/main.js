@@ -166,7 +166,8 @@ function generateLevelContent({
     }
 
     // Collectibles on platforms
-    for (const p of state.platforms) {
+    for (const p of state.platforms)
+    {
         if (random() >= 0.25) continue;
         const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
         if (cx >= flagPoleX - 40) continue; // keep a little gap before pole
@@ -240,7 +241,8 @@ function generateLevelContent({
     // Layer 2 trees (mid distance): fewer & smaller, simple random spacing (reuse safe/flag rules)
     const layer2Target = floor(treeCountTarget * 0.35);
     let t2Attempts = 0;
-    while (state.trees2.length < layer2Target && t2Attempts < layer2Target * 40) {
+    while (state.trees2.length < layer2Target && t2Attempts < layer2Target * 40)
+    {
         t2Attempts++;
         const tx = random(WORLD_WIDTH);
         if (tx > safeLeft - 60 && tx < safeRight + 60) continue; // extra gap near spawn
@@ -255,7 +257,8 @@ function generateLevelContent({
     // Layer 3 trees (furthest): rare & tiny silhouettes
     const layer3Target = floor(treeCountTarget * 0.18);
     let t3Attempts = 0;
-    while (state.trees3.length < layer3Target && t3Attempts < layer3Target * 50) {
+    while (state.trees3.length < layer3Target && t3Attempts < layer3Target * 50)
+    {
         t3Attempts++;
         const tx = random(WORLD_WIDTH);
         if (tx > safeLeft - 80 && tx < safeRight + 80) continue;
@@ -340,12 +343,13 @@ function generateLevelContent({
     // Worms (avoid canyons & safe zone)
     const wormCount = floor(6 * worldScale) + 3;
     let wormAttempts = 0;
-    while (state.worms.length < wormCount && wormAttempts < wormCount * 40) {
+    while (state.worms.length < wormCount && wormAttempts < wormCount * 40)
+    {
         wormAttempts++;
         const wx = random(WORLD_WIDTH);
         if (wx > safeLeft - 40 && wx < safeRight + 40) continue;
-    // Keep worms away from finish flag area (safe zone)
-    if (abs(wx - flagPoleX) < 140) continue;
+        // Keep worms away from finish flag area (safe zone)
+        if (abs(wx - flagPoleX) < 140) continue;
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
@@ -411,12 +415,14 @@ window.setup = function setup()
     };
     for (const k of ['JUMP', 'COLLECT', 'DEATH', 'WIN', 'LOST', 'PLUMMET']) state.sound[k].setVolume(state.sound.baseVolume);
     state.sound.WORM_DIE.setVolume(state.sound.baseVolume * 2.5);
-    state.sound.MUSIC = loadSound('assets/music.mp3', (snd) => {
+    state.sound.MUSIC = loadSound('assets/music.mp3', (snd) =>
+    {
         const vol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
         snd.setVolume(vol);
         snd.setLoop(true);
         // Don't autoplay until start screen dismissed
-        if (!state.showStartScreen && state.musicEnabled) {
+        if (!state.showStartScreen && state.musicEnabled)
+        {
             try { snd.play(); } catch (e) { }
         }
     });
@@ -425,14 +431,17 @@ window.setup = function setup()
     startGame();
 };
 
-window.draw = function draw() {
+window.draw = function draw()
+{
     const gameCharacter = state.gameChar;
     background(100, 155, 255);
 
     // Camera follow (frozen while start screen visible to keep centered initial view)
-    if (!state.showStartScreen) {
+    if (!state.showStartScreen)
+    {
         state.cameraPosX = constrain(gameCharacter.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
-    } else {
+    } else
+    {
         state.cameraPosX = 0;
     }
 
@@ -448,32 +457,38 @@ window.draw = function draw() {
     drawScenery();
 
     // Worm collisions
-    if (!state.showStartScreen && !gameCharacter.isDead) {
+    if (!state.showStartScreen && !gameCharacter.isDead)
+    {
         const charX = gameCharacter.x;
-        for (let i = state.worms.length - 1; i >= 0; i--) {
+        for (let i = state.worms.length - 1; i >= 0; i--)
+        {
             const w = state.worms[i];
             const dx = abs(charX - w.x);
-            if (dx < 20 && abs(gameCharacter.y - state.floorPosY) < 6) { // simple proximity check near ground
+            if (dx < 20 && abs(gameCharacter.y - state.floorPosY) < 6)
+            { // simple proximity check near ground
                 // Spawn splash with longer life & particle rays
                 const splash = factory.splash(w.x, w.y);
                 splash.maxLife = 24;
                 splash.life = splash.maxLife;
                 state.splashes.push(splash);
                 // Play sound
-                if (state.sound && state.sound.WORM_DIE) { 
-                    try { state.sound.WORM_DIE.rate(random(0.9,1.1)); } catch(e) {}
-                    state.sound.WORM_DIE.play(); 
+                if (state.sound && state.sound.WORM_DIE)
+                {
+                    try { state.sound.WORM_DIE.rate(random(0.9, 1.1)); } catch (e) { }
+                    state.sound.WORM_DIE.play();
                 }
                 // Remove worm and apply life penalty
                 state.worms.splice(i, 1);
                 state.lives = max(0, state.lives - 1);
-                if (state.lives <= 0 && state.loseFrame === null) {
+                if (state.lives <= 0 && state.loseFrame === null)
+                {
                     gameCharacter.isDead = true;
                     state.loseFrame = frameCount;
                     // Play LOST sound (final life) and stop music similar to fall death path
                     if (state.sound && state.sound.LOST) { state.sound.LOST.play(); }
-                    if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying()) {
-                        try { state.sound.MUSIC.stop(); } catch(e) {}
+                    if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying())
+                    {
+                        try { state.sound.MUSIC.stop(); } catch (e) { }
                     }
                 }
             }
@@ -481,16 +496,19 @@ window.draw = function draw() {
     }
 
     // Draw & update splashes (world space)
-    for (let i = state.splashes.length - 1; i >= 0; i--) {
+    for (let i = state.splashes.length - 1; i >= 0; i--)
+    {
         const s = state.splashes[i];
         drawSplash(s);
         if (s.life <= 0) { state.splashes.splice(i, 1); }
     }
 
-    if (!state.showStartScreen) {
+    if (!state.showStartScreen)
+    {
         checkPlayerDie();
         if (!gameCharacter.isDead) { drawCharacter(); }
-        for (let i = 0; i < state.collectables.length; i++) {
+        for (let i = 0; i < state.collectables.length; i++)
+        {
             const collectible = state.collectables[i];
             drawCollectible(collectible);
             checkCollectable(collectible);
@@ -498,7 +516,8 @@ window.draw = function draw() {
         }
         drawFinishLine();
         if (gameCharacter.isDead) { drawGameOver(); }
-        if (state.flagPole.isReached || state.winFrame !== null) {
+        if (state.flagPole.isReached || state.winFrame !== null)
+        {
             ensureWinParticles();
             drawGameWin();
         }
@@ -513,23 +532,28 @@ window.draw = function draw() {
     drawStartScreen();
 };
 
-window.keyPressed = function() {
-    if (state.showStartScreen) {
+window.keyPressed = function ()
+{
+    if (state.showStartScreen)
+    {
         state.showStartScreen = false;
         state.startScreenFade = 1; // begin fade out
-        if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
-            try { state.sound.MUSIC.play(); } catch(e) {}
+        if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying())
+        {
+            try { state.sound.MUSIC.play(); } catch (e) { }
         }
         return;
     }
     // Music toggle shortcut (M)
-    if (key === 'm' || key === 'M') {
+    if (key === 'm' || key === 'M')
+    {
         state.musicEnabled = !state.musicEnabled;
-        if (state.sound && state.sound.MUSIC) {
+        if (state.sound && state.sound.MUSIC)
+        {
             const targetVol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
             state.sound.MUSIC.setVolume(targetVol);
             // Ensure music keeps playing silently when muted to resume instantly
-            if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch(e) {} }
+            if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch (e) { } }
         }
         return;
     }
@@ -538,25 +562,31 @@ window.keyPressed = function() {
 window.keyReleased = keyReleased;
 
 // Mouse restart handler (UI buttons)
-window.mousePressed = function() {
-    if (state.showStartScreen) {
+window.mousePressed = function ()
+{
+    if (state.showStartScreen)
+    {
         state.showStartScreen = false;
         state.startScreenFade = 1;
-        if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
-            try { state.sound.MUSIC.play(); } catch(e) {}
+        if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying())
+        {
+            try { state.sound.MUSIC.play(); } catch (e) { }
         }
         return;
     }
 
     // Music toggle
-    if (state._musicBtn) {
+    if (state._musicBtn)
+    {
         const { x, y, w, h } = state._musicBtn;
-        if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+        if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h)
+        {
             state.musicEnabled = !state.musicEnabled;
-            if (state.sound && state.sound.MUSIC) {
+            if (state.sound && state.sound.MUSIC)
+            {
                 const targetVol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
                 state.sound.MUSIC.setVolume(targetVol);
-                if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch(e) {} }
+                if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch (e) { } }
             }
             return;
         }
@@ -568,9 +598,11 @@ window.mousePressed = function() {
     const winBtnX = CANVAS_WIDTH / 2 - btnWWin / 2;
     const overBtnX = CANVAS_WIDTH / 2 - btnWOver / 2;
     const commonY = CANVAS_HEIGHT / 3 + 120;
-    if (state.flagPole.isReached) {
+    if (state.flagPole.isReached)
+    {
         if (mouseX >= winBtnX && mouseX <= winBtnX + btnWWin && mouseY >= commonY && mouseY <= commonY + btnHWin) { startGame(); }
-    } else if (state.loseFrame !== null) {
+    } else if (state.loseFrame !== null)
+    {
         if (mouseX >= overBtnX && mouseX <= overBtnX + btnWOver && mouseY >= commonY && mouseY <= commonY + btnHOver) { startGame(); }
     }
 };

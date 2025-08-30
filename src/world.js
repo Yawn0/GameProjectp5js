@@ -5,30 +5,34 @@
 import { state, WORLD_WIDTH } from './constants.js';
 
 /** Draw ground strip */
-export function drawGround() {
+export function drawGround()
+{
     noStroke();
     fill(0, 155, 0);
     rect(0, state.floorPosY, width, height - state.floorPosY);
 }
 
 /** Expand seed coordinates into fluffy cloud segments */
-export function generateClouds(cloudsCoordinates) {
+export function generateClouds(cloudsCoordinates)
+{
     const clouds = [];
-    for (let i = 0; i < cloudsCoordinates.length; i++) {
+    for (let i = 0; i < cloudsCoordinates.length; i++)
+    {
         const cloud = cloudsCoordinates[i];
-    const speed = random(0.15, 0.45);     // per-cluster horizontal drift speed
-    const light = random(215, 250);       // base brightness for consistent cluster shading
-    // Build 4 ellipses per seed with small random vertical compression for softness
-    clouds.push({ x: cloud.x_pos,      y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
-    clouds.push({ x: cloud.x_pos + 40, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 70, speed, light });
-    clouds.push({ x: cloud.x_pos + 80, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
-    clouds.push({ x: cloud.x_pos + 30, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 80, speed, light });
+        const speed = random(0.15, 0.45);     // per-cluster horizontal drift speed
+        const light = random(215, 250);       // base brightness for consistent cluster shading
+        // Build 4 ellipses per seed with small random vertical compression for softness
+        clouds.push({ x: cloud.x_pos, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
+        clouds.push({ x: cloud.x_pos + 40, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 70, speed, light });
+        clouds.push({ x: cloud.x_pos + 80, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
+        clouds.push({ x: cloud.x_pos + 30, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 80, speed, light });
     }
     return clouds;
 }
 
 /** Draw one cloud ellipse. */
-export function drawCloud(cloud) {
+export function drawCloud(cloud)
+{
     noStroke();
     const base = cloud.light || 235;
     const shadow = max(160, base - 55);
@@ -49,17 +53,20 @@ export function drawCloud(cloud) {
     ellipse(cloud.x - cloud.width * 0.18, cloud.y - cloud.height * 0.18 + windOffsetY, cloud.width * 0.55, cloud.height * 0.45);
 
     // Horizontal drift
-    if (cloud.speed) {
+    if (cloud.speed)
+    {
         cloud.x += cloud.speed; // simple constant drift (parallax layer speed chosen per cluster)
         // Wrap logic uses cameraPosX so far off‑screen clouds recycle seamlessly even after large camera jumps.
-        if (cloud.x - state.cameraPosX > WORLD_WIDTH + 150) {
+        if (cloud.x - state.cameraPosX > WORLD_WIDTH + 150)
+        {
             cloud.x = -150 + state.cameraPosX;
         }
     }
 }
 
 /** Composite triangle mountain with inner + snow layers. */
-export function drawMountain(mountain, floorPos_y, camX) {
+export function drawMountain(mountain, floorPos_y, camX)
+{
     // subtle parallax (close to foreground speed)
     const PARALLAX_FACTOR = 0.1; // 0=no movement, 1=normal; choose high for subtle effect
     const baseX = mountain.x_pos + camX * PARALLAX_FACTOR;
@@ -77,7 +84,8 @@ export function drawMountain(mountain, floorPos_y, camX) {
 }
 
 /** Base tree drawing (foreground layer, full size, no parallax). */
-export function drawTree(tree, treePos_y) {
+export function drawTree(tree, treePos_y)
+{
     drawParallaxTree(tree.x, treePos_y, 1, 0, true);
 }
 
@@ -88,7 +96,8 @@ export function drawTree(tree, treePos_y) {
  * @param {number} parallaxFactor horizontal parallax factor (0 = lock to world, like foreground)
  * @param {boolean} full detail foliage (foreground) or simplified (mid/far)
  */
-function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
+function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false)
+{
     const camX = state.cameraPosX;
     const px = x + camX * parallaxFactor; // simulate depth: smaller factor => slower horizontal movement
     const sway = state.windValue * 8 * scale * (full ? 1 : 0.5); // reduce sway on distant layers
@@ -98,11 +107,13 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
     rect(px + sway * 0.15, groundY, trunkWidth, -trunkHeight);
     // Foreground trees keep original layering formula but for distant layers trunk top touches foliage base
     let baseY = groundY - (150 * scale - trunkHeight);
-    if (!full) {
+    if (!full)
+    {
         baseY = groundY - trunkHeight + 70 * scale;
     }
     // Foliage layers
-    function tri(off, topOffset, wScale, hOffset, swayMul, col) {
+    function tri(off, topOffset, wScale, hOffset, swayMul, col)
+    {
         fill(col[0], col[1], col[2], full ? 255 : 230);
         triangle(
             px - (40 * scale * wScale) + sway * swayMul + off,
@@ -117,11 +128,13 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
     const baseCol = [100, 160, 35];
     const midCol = [100, 170, 35];
     const topCol = [100, 180, 35];
-    if (full) {
+    if (full)
+    {
         tri(0, 0, 1, 0, 1.0, baseCol);
         tri(0, 35 * scale, 0.9, 30 * scale, 1.1, midCol);
         tri(0, 65 * scale, 0.8, 60 * scale, 1.2, topCol);
-    } else {
+    } else
+    {
         // Fewer layers for distant trees
         tri(0, 10 * scale, 0.9, 20 * scale, 0.8, baseCol);
         tri(0, 45 * scale, 0.75, 50 * scale, 0.9, midCol);
@@ -129,7 +142,8 @@ function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
 }
 
 /** Canyon polygon */
-export function drawCanyon(canyon, floorPos_y) {
+export function drawCanyon(canyon, floorPos_y)
+{
     fill(139, 69, 19);
     beginShape();
     vertex(canyon.x_pos, floorPos_y);
@@ -150,7 +164,8 @@ export function drawCanyon(canyon, floorPos_y) {
     noStroke();
     push();
     rectMode(CORNERS);
-    for (let i = 0; i < layers; i++) {
+    for (let i = 0; i < layers; i++)
+    {
         const y1 = depthTop + i * h;
         const y2 = y1 + h + 1;
         const t = i / (layers - 1);
@@ -163,7 +178,8 @@ export function drawCanyon(canyon, floorPos_y) {
 }
 
 /** Soft distant rolling hill (parallax). */
-export function drawHill(hill) {
+export function drawHill(hill)
+{
     noStroke();
     const baseY = state.floorPosY + 20; // slightly below floor for depth
     fill(60, 170, 60, 180);
@@ -171,7 +187,8 @@ export function drawHill(hill) {
 }
 
 /** Small ground rock with highlight. */
-export function drawRock(rock) {
+export function drawRock(rock)
+{
     noStroke();
     fill(110, 105, 100);
     ellipse(rock.x, state.floorPosY - 8, rock.size * 1.4, rock.size);
@@ -180,7 +197,8 @@ export function drawRock(rock) {
 }
 
 /** Tiny flower. */
-export function drawFlower(f) {
+export function drawFlower(f)
+{
     push();
     const sway = state.windValue * 10;
     translate(f.x + sway * 0.6, state.floorPosY);
@@ -194,7 +212,8 @@ export function drawFlower(f) {
     const pc = petalColors[f.colorIndex % petalColors.length];
     fill(...pc);
     const r = f.height * 0.35;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i++)
+    {
         const ang = (TWO_PI / 5) * i;
         ellipse(cos(ang) * r, -f.height + sin(ang) * r, r * 1.1, r * 0.9);
     }
@@ -204,19 +223,23 @@ export function drawFlower(f) {
 }
 
 /** Small grass tuft. */
-export function drawGrassTuft(t) {
+export function drawGrassTuft(t)
+{
     push();
     const baseSway = state.windValue * 6;
     translate(t.x + baseSway * 0.2, state.floorPosY);
     stroke(50, 140, 50);
     strokeWeight(2);
-    if (!t.blades) {
+    if (!t.blades)
+    {
         t.blades = [];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 5; i++)
+        {
             t.blades.push({ ang: map(i, 0, 4, -0.6, 0.6) + random(-0.1, 0.1), len: t.height * random(0.7, 1) });
         }
     }
-    for (const b of t.blades) {
+    for (const b of t.blades)
+    {
         const dynamicLean = baseSway * 0.4;
         line(0, 0, sin(b.ang) * 6 + dynamicLean, -b.len);
     }
@@ -224,8 +247,10 @@ export function drawGrassTuft(t) {
 }
 
 /** Render coin if not yet collected. */
-export function drawCollectible(collectible) {
-    if (!collectible.isFound) {
+export function drawCollectible(collectible)
+{
+    if (!collectible.isFound)
+    {
         const centerY = collectible.y_pos - (collectible.size / 2);
         const pulse = 0.5 + 0.5 * sin(frameCount * 0.15);
         stroke(0);
@@ -246,14 +271,15 @@ export function drawCollectible(collectible) {
         ellipse(collectible.x_pos - 6, centerY - 6, collectible.size * 0.35);
         // Sparkle highlight (static, faint pulse but no spin)
         const sparklePulse = 0.6 + 0.4 * sin(frameCount * 0.2 + collectible.x_pos * 0.05);
-        fill(255,255,255,180 * sparklePulse);
+        fill(255, 255, 255, 180 * sparklePulse);
         noStroke();
         ellipse(collectible.x_pos - collectible.size * 0.18, centerY - collectible.size * 0.45, collectible.size * 0.18, collectible.size * 0.30);
     }
 }
 
 /** Crawling worm composed of small segments with sinusoidal undulation. */
-export function drawWorm(worm) {
+export function drawWorm(worm)
+{
     // Update motion:
     //  phase drives sinusoidal offset for each segment (gives crawling wiggle)
     //  horizontal position advances at (speed * scalar) in current direction
@@ -263,16 +289,20 @@ export function drawWorm(worm) {
     if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
     if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
     // Flag pole safe zone: worms cannot enter a horizontal band around the finish area
-    if (state.flagPole) {
+    if (state.flagPole)
+    {
         const SAFE_HALF = 110; // must be <= spawn exclusion (140) to prevent jitter at edge
         const leftBound = state.flagPole.x_pos - SAFE_HALF;
         const rightBound = state.flagPole.x_pos + SAFE_HALF;
-        if (worm.x > leftBound && worm.x < rightBound) {
+        if (worm.x > leftBound && worm.x < rightBound)
+        {
             // Push worm to nearest edge & reverse direction to leave area
-            if (worm.dir > 0) {
+            if (worm.dir > 0)
+            {
                 worm.x = leftBound;
                 worm.dir = -1;
-            } else {
+            } else
+            {
                 worm.x = rightBound;
                 worm.dir = 1;
             }
@@ -283,7 +313,8 @@ export function drawWorm(worm) {
     noStroke();
     // Bright, high-contrast palette: warm gradient (head = vivid yellow, tail = deep orange) + thin outline.
     // Improves readability against green ground & brown canyons.
-    for (let s = 0; s < worm.segmentCount; s++) {
+    for (let s = 0; s < worm.segmentCount; s++)
+    {
         const segX = worm.x - worm.dir * s * segmentSpacing;      // trail positioning
         const wave = sin(worm.phase - s * 0.6) * amplitude;       // body undulation
         const segY = worm.y + wave * 0.15;
@@ -304,11 +335,14 @@ export function drawWorm(worm) {
 }
 
 /** Brief splash effect */
-export function drawSplash(s) {
+export function drawSplash(s)
+{
     // Lazily initializing particle rays (so factory stays lightweight? maybe?)
-    if (!s.particles) {
+    if (!s.particles)
+    {
         s.particles = [];
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++)
+        {
             s.particles.push({
                 ang: random(TWO_PI),
                 speed: random(1, 3.5),
@@ -319,7 +353,8 @@ export function drawSplash(s) {
     }
     // Normalized life progress (0 -> birth, 1 -> end)
     const t = 1 - (s.life / s.maxLife);
-    for (const p of s.particles) {
+    for (const p of s.particles)
+    {
         p.r = lerp(0, p.maxR, t);
         const px = s.x + cos(p.ang) * p.r;
         const py = s.y - 4 + sin(p.ang) * p.r * 0.6;
@@ -338,7 +373,8 @@ export function drawSplash(s) {
 
 
 /** Batch draw of world backdrop elements. */
-export function drawScenery() {
+export function drawScenery()
+{
     // Ordered back-to-front to achieve desired layering.
     // 1. Distant hills
     for (let i = 0; i < state.hills.length; i++) drawHill(state.hills[i]);
@@ -347,15 +383,19 @@ export function drawScenery() {
     // 3. Mountains
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
     // 4. Far trees (layer 3)
-    if (state.trees3) {
-        for (let i = 0; i < state.trees3.length; i++) {
+    if (state.trees3)
+    {
+        for (let i = 0; i < state.trees3.length; i++)
+        {
             const t = state.trees3[i];
             drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false);
         }
     }
     // 5. Mid-ground parallax trees layer 2
-    if (state.trees2) {
-        for (let i = 0; i < state.trees2.length; i++) {
+    if (state.trees2)
+    {
+        for (let i = 0; i < state.trees2.length; i++)
+        {
             const t = state.trees2[i];
             drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false);
         }
@@ -368,7 +408,8 @@ export function drawScenery() {
     // 7. Ground hazards
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
     // 8. Interactive platforms (above terrain)
-    for (let i = 0; i < state.platforms.length; i++) {
+    for (let i = 0; i < state.platforms.length; i++)
+    {
         const platform = state.platforms[i];
         stroke(120, 100, 20, 120);
         strokeWeight(2);

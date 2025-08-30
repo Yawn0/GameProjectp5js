@@ -2,7 +2,8 @@
 import { BLOBBY, state } from './constants.js';
 
 /** Idle / neutral pose */
-export function blobbyStandingFront() {
+export function blobbyStandingFront()
+{
     const gameChar = state.gameChar;
     // Joyful idle wobble while standing
     const t = frameCount * 0.08; // phase speed
@@ -40,7 +41,8 @@ export function blobbyStandingFront() {
 }
 
 /** Vertical jump / airborne idle */
-export function blobbyJumping() {
+export function blobbyJumping()
+{
     const gameChar = state.gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
@@ -68,7 +70,8 @@ export function blobbyJumping() {
 }
 
 /** Walk cycle facing left */
-export function blobbyWalkingLeft() {
+export function blobbyWalkingLeft()
+{
     const gameChar = state.gameChar;
     const phase = gameChar.walkCycle;
     const stride = sin(phase);
@@ -113,7 +116,8 @@ export function blobbyWalkingLeft() {
 }
 
 /** Walk cycle facing right */
-export function blobbyWalkingRight() {
+export function blobbyWalkingRight()
+{
     const gameChar = state.gameChar;
     const phase = gameChar.walkCycle;
     const stride = sin(phase);
@@ -155,7 +159,8 @@ export function blobbyWalkingRight() {
 }
 
 /** Airborne with leftward momentum */
-export function blobbyJumpingLeft() {
+export function blobbyJumpingLeft()
+{
     const gameChar = state.gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
@@ -182,7 +187,8 @@ export function blobbyJumpingLeft() {
 }
 
 /** Airborne with rightward momentum */
-export function blobbyJumpingRight() {
+export function blobbyJumpingRight()
+{
     const gameChar = state.gameChar;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);

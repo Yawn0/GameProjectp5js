@@ -2,8 +2,10 @@
 import { state, CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
 
 /** Display remaining lives as hearts */
-export function drawLives() {
-    for (let i = 0; i < state.lives; i++) {
+export function drawLives()
+{
+    for (let i = 0; i < state.lives; i++)
+    {
         push();
         translate(32 + i * 42, 36); // screen-space now
         const scaleFactor = 1.1;
@@ -25,7 +27,8 @@ export function drawLives() {
 }
 
 /** Render current score HUD text */
-export function drawGameScore() {
+export function drawGameScore()
+{
     const margin = 20;
     const label = 'Score: ' + state.gameScore;
     textSize(26);
@@ -50,7 +53,8 @@ export function drawGameScore() {
 }
 
 /** Game over banner + restart button */
-export function drawGameOver() {
+export function drawGameOver()
+{
     if (state.loseFrame === null) return; // not yet triggered
     push();
     resetMatrix();
@@ -63,13 +67,13 @@ export function drawGameOver() {
     translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
     scale(scalePulse);
     noStroke();
-    fill(20,0,0,160);
+    fill(20, 0, 0, 160);
     text('GAME OVER', 4, 6);
-    stroke(40,0,0,200);
+    stroke(40, 0, 0, 200);
     strokeWeight(5);
     strokeJoin(ROUND);
     strokeCap(ROUND);
-    fill(lerpColor(color(180,0,0), color(255,90,90), pulse));
+    fill(lerpColor(color(180, 0, 0), color(255, 90, 90), pulse));
     text('GAME OVER', 0, 0);
     pop();
     const btnW = 220, btnH = 60;
@@ -89,7 +93,8 @@ export function drawGameOver() {
 }
 
 /** Win banner + particle celebration (particles managed in gameplay). */
-export function drawGameWin() {
+export function drawGameWin()
+{
     if (state.winFrame === null) return; // gameplay triggers and sets winFrame
     push();
     resetMatrix();
@@ -103,7 +108,7 @@ export function drawGameWin() {
     translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
     scale(scalePulseW);
     noStroke();
-    fill(0,0,0,140);
+    fill(0, 0, 0, 140);
     text('GAME COMPLETED!', 4, 6);
     stroke(0, 160);
     strokeWeight(4.5);
@@ -117,7 +122,7 @@ export function drawGameWin() {
     const btnY = CANVAS_HEIGHT / 3 + 120;
     const hover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
     noStroke();
-    fill(hover ? color(255,200,0) : color(255,170,0));
+    fill(hover ? color(255, 200, 0) : color(255, 170, 0));
     rect(btnX, btnY, btnW, btnH, 14);
     fill(60);
     textSize(32);
@@ -129,7 +134,8 @@ export function drawGameWin() {
 }
 
 /** Music toggle button */
-export function drawMusicToggle() {
+export function drawMusicToggle()
+{
     if (!state.sound || !state.sound.MUSIC) return;
     const label = 'Music: ' + (state.musicEnabled ? 'ON' : 'OFF');
     textSize(16);
@@ -143,7 +149,7 @@ export function drawMusicToggle() {
     noStroke();
     fill(0, 0, 0, 140);
     rect(x + 3, y + 3, w, h, 8);
-    fill( state.musicEnabled ? (hover ? 80 : 50) : (hover ? 150 : 120), state.musicEnabled ? 180 : 50, 70, 230);
+    fill(state.musicEnabled ? (hover ? 80 : 50) : (hover ? 150 : 120), state.musicEnabled ? 180 : 50, 70, 230);
     stroke(0);
     strokeWeight(2);
     rect(x, y, w, h, 8);
@@ -156,10 +162,12 @@ export function drawMusicToggle() {
 }
 
 /** Displays screen overlay listing controls. Fades out on first key / click. */
-export function drawStartScreen() {
+export function drawStartScreen()
+{
     if (!state.showStartScreen && state.startScreenFade <= 0) return;
     // Advance fade if hidden
-    if (!state.showStartScreen && state.startScreenFade > 0) {
+    if (!state.showStartScreen && state.startScreenFade > 0)
+    {
         state.startScreenFade = max(0, state.startScreenFade - 0.04);
     }
     const alpha = state.showStartScreen ? 1 : state.startScreenFade; // 1 while visible, then fade out
@@ -184,7 +192,7 @@ export function drawStartScreen() {
         'D / Right Arrow - Move Right',
         'W / Up Arrow / Space - Jump',
         'S / Down Arrow - Drop through platform',
-        'R - Restart after win / game over',
+        'R - Restart after win / game over (or click Restart button)',
         'M - Toggle music (or click Music button)',
         '',
         'Press any key or click to start'

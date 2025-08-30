@@ -7,8 +7,10 @@ import { generateClouds } from './world.js';
 import { WORLD_WIDTH } from './constants.js';
 
 // Player avatar state container
-export class GameCharacter {
-    constructor(x, y) {
+export class GameCharacter
+{
+    constructor(x, y)
+    {
         this.x = x;
         this.y = y;
         this.vy = 0;                     // vertical velocity (integrated each frame)
@@ -21,7 +23,8 @@ export class GameCharacter {
         this.plummetSoundPlayed = false; // prevent repeat sound spam
         this.walkCycle = 0;              // phase accumulator for walking animation
     }
-    reset(floorY) {
+    reset(floorY)
+    {
         this.x = width / 2;
         this.y = floorY;
         this.vy = 0;
@@ -34,8 +37,10 @@ export class GameCharacter {
 }
 
 // Coin / pickup token
-export class Collectible {
-    constructor(x, y, size = 32) {
+export class Collectible
+{
+    constructor(x, y, size = 32)
+    {
         this.x_pos = x;
         this.y_pos = y;
         this.size = size;
@@ -43,16 +48,20 @@ export class Collectible {
     }
 }
 
-export class Canyon {
-    constructor(x, width = 80) {
+export class Canyon
+{
+    constructor(x, width = 80)
+    {
         this.x_pos = x;
         this.width = width;
     }
 }
 
 // Walkable horizontal platform
-export class Platform {
-    constructor(x, y, width = 120, height = 12, level = 0) {
+export class Platform
+{
+    constructor(x, y, width = 120, height = 12, level = 0)
+    {
         this.x_pos = x;
         this.y_pos = y;     // top surface Y
         this.width = width;
@@ -62,8 +71,10 @@ export class Platform {
 }
 
 // Level completion trigger
-export class FlagPole {
-    constructor(x, y, width = 10, height = 100) {
+export class FlagPole
+{
+    constructor(x, y, width = 10, height = 100)
+    {
         this.x_pos = x;
         this.y_pos = y;
         this.width = width;

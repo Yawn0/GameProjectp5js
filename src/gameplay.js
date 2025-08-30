@@ -3,7 +3,8 @@ import { BLOBBY, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state, GRAVITY_ACCE
 import { blobbyJumpingLeft, blobbyJumpingRight, blobbyWalkingLeft, blobbyWalkingRight, blobbyJumping, blobbyStandingFront } from './character.js';
 
 /** Map raw keyCode to canonical direction key. */
-export function getDirectionalKey(keyCode) {
+export function getDirectionalKey(keyCode)
+{
     if (keyCode == 65 || keyCode == LEFT_ARROW) { return LEFT_ARROW; }
     if (keyCode == 68 || keyCode == RIGHT_ARROW) { return RIGHT_ARROW; }
     if (keyCode == 87 || keyCode == UP_ARROW || keyCode == 32) { return UP_ARROW; }
@@ -21,23 +22,27 @@ export function getDirectionalKey(keyCode) {
  *   Setting dropThroughFrames > 0 makes landing logic temporarily ignore platforms so the
  *   player can descend intentionally. Slight +y nudge ensures we're below platform top next frame.
  */
-export function keyPressed() {
+export function keyPressed()
+{
     const gameCharacter = state.gameChar;
     // Start background music only if enabled and not on start screen
-    if (!state.showStartScreen && state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
-        try { state.sound.MUSIC.play(); } catch(e) {}
+    if (!state.showStartScreen && state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying())
+    {
+        try { state.sound.MUSIC.play(); } catch (e) { }
     }
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null || gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { gameCharacter.isLeft = true; }
     else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = true; }
-    else if (directionKey === UP_ARROW && !gameCharacter.isFalling) {
+    else if (directionKey === UP_ARROW && !gameCharacter.isFalling)
+    {
         state.sound.JUMP.play();
         // Initiate smooth jump: set upward velocity
         gameCharacter.vy = -JUMP_VELOCITY;
         gameCharacter.isFalling = true;
     }
-    else if (directionKey === DOWN_ARROW) {
+    else if (directionKey === DOWN_ARROW)
+    {
         // Initiate drop-through: temporarily ignore platforms while moving down
         gameCharacter.dropThroughFrames = 15; // ~ quarter second at 60fps
         gameCharacter.y += 5; // nudge below platform surface
@@ -45,7 +50,8 @@ export function keyPressed() {
 }
 
 /** Stop horizontal movement on key up. */
-export function keyReleased() {
+export function keyReleased()
+{
     const gameCharacter = state.gameChar;
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null || gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
@@ -69,10 +75,12 @@ export function keyReleased() {
  *    - isFalling distinguishes upward vs downward phases for animation.
  *    - isPlummeting suppresses further jump / horizontal control until resolved.
  */
-export function drawCharacter() {
+export function drawCharacter()
+{
     const gameCharacter = state.gameChar;
     // Freeze character once level completed
-    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) {
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null)
+    {
         blobbyStandingFront();
         return;
     }
@@ -88,18 +96,22 @@ export function drawCharacter() {
     else if (gameCharacter.isRight) { gameCharacter.x += BLOBBY.SPEED; }
 
     // Apply gravity + velocity integration
-    if (gameCharacter.isPlummeting) {
+    if (gameCharacter.isPlummeting)
+    {
         // plummeting handled later
-    } else {
+    } else
+    {
         gameCharacter.vy += GRAVITY_ACCEL; // accumulate gravity
         gameCharacter.y += gameCharacter.vy;
-        if (gameCharacter.y >= state.floorPosY) {
+        if (gameCharacter.y >= state.floorPosY)
+        {
             gameCharacter.y = state.floorPosY;
             gameCharacter.vy = 0;
             gameCharacter.isFalling = false;
             gameCharacter.isPlummeting = false;
             gameCharacter.plummetSoundPlayed = false;
-        } else {
+        } else
+        {
             gameCharacter.isFalling = gameCharacter.vy > 0; // falling when moving downward
         }
     }
@@ -111,12 +123,15 @@ export function drawCharacter() {
     const characterHalfWidth = BLOBBY.DIMENSIONS.BODY_WIDTH * 0.5;
     let onPlatform = false;
     if (gameCharacter.dropThroughFrames > 0) { gameCharacter.dropThroughFrames--; }
-    else {
-        for (const platform of state.platforms) {
+    else
+    {
+        for (const platform of state.platforms)
+        {
             const withinX = gameCharacter.x + characterHalfWidth > platform.x_pos && gameCharacter.x - characterHalfWidth < platform.x_pos + platform.width;
             const closeToTop = abs(gameCharacter.y - platform.y_pos) < 5;  // vertical snap tolerance
             const abovePlatform = gameCharacter.y <= platform.y_pos + 5;    // ensures only landing from above
-            if (withinX && closeToTop && abovePlatform) {
+            if (withinX && closeToTop && abovePlatform)
+            {
                 // Landing resolution: snap, zero vertical speed, reset fall / plummet flags.
                 gameCharacter.y = platform.y_pos;
                 gameCharacter.vy = 0;
@@ -132,7 +147,8 @@ export function drawCharacter() {
 
     for (let i = 0; i < state.canyons.length; i++) { checkCanyon(state.canyons[i]); }
 
-    if (gameCharacter.isPlummeting) {
+    if (gameCharacter.isPlummeting)
+    {
         gameCharacter.y += PLUMMET_SPEED;
         gameCharacter.vy = 0;
         gameCharacter.isLeft = false;
@@ -141,9 +157,11 @@ export function drawCharacter() {
 }
 
 /** Collect coin when player overlaps. */
-export function checkCollectable(collectible) {
+export function checkCollectable(collectible)
+{
     const gameCharacter = state.gameChar;
-    if (dist(gameCharacter.x, gameCharacter.y, collectible.x_pos, collectible.y_pos) < 20) {
+    if (dist(gameCharacter.x, gameCharacter.y, collectible.x_pos, collectible.y_pos) < 20)
+    {
         state.sound.COLLECT.play();
         collectible.isFound = true;
         state.gameScore++;
@@ -155,15 +173,19 @@ export function checkCollectable(collectible) {
  *  Contact required with floor to avoid triggering mid‑air when jumping over
  *  Once triggered, sets isPlummeting and plays a one‑shot sound; later drawCharacter applies constant descent
  */
-export function checkCanyon(canyon) {
+export function checkCanyon(canyon)
+{
     const gameCharacter = state.gameChar;
     const isOverCanyon = gameCharacter.x > canyon.x_pos && gameCharacter.x < canyon.x_pos + canyon.width && gameCharacter.y >= state.floorPosY;
-    if (isOverCanyon) {
-        if (!gameCharacter.isPlummeting) {
+    if (isOverCanyon)
+    {
+        if (!gameCharacter.isPlummeting)
+        {
             gameCharacter.isPlummeting = true;
             gameCharacter.plummetSoundPlayed = false; // reset flag at start
         }
-        if (!gameCharacter.plummetSoundPlayed && state.sound.PLUMMET) {
+        if (!gameCharacter.plummetSoundPlayed && state.sound.PLUMMET)
+        {
             state.sound.PLUMMET.play();
             gameCharacter.plummetSoundPlayed = true;
         }
@@ -171,7 +193,8 @@ export function checkCanyon(canyon) {
 }
 
 /** Detect proximity to flag pole */
-export function checkFinishLine() {
+export function checkFinishLine()
+{
     const gameCharacter = state.gameChar;
     const finishFlag = state.flagPole;
     const isOverFinishLine = abs(gameCharacter.x - finishFlag.x_pos) < 10 && abs(gameCharacter.y - finishFlag.y_pos) < 10;
@@ -182,37 +205,45 @@ export function checkFinishLine() {
  *  Falling below canvas bottom decrements lives; character is reset to spawn
  *  Music stops only once when lives deplete -> loseFrame is stamped to freeze state & enable HUD overlay
  */
-export function checkPlayerDie() {
+export function checkPlayerDie()
+{
     const gameCharacter = state.gameChar;
-    if (gameCharacter.y > height) {
+    if (gameCharacter.y > height)
+    {
         const isLastLife = state.lives - 1 <= 0;
-        if (isLastLife) {
+        if (isLastLife)
+        {
             if (state.sound.LOST) state.sound.LOST.play();
-        } else {
+        } else
+        {
             state.sound.DEATH.play();
         }
         state.lives--;
         gameCharacter.reset(state.floorPosY);
         state.cameraPosX = 0;
     }
-    if (state.lives <= 0 && state.loseFrame === null) {
+    if (state.lives <= 0 && state.loseFrame === null)
+    {
         gameCharacter.isDead = true;
         state.loseFrame = frameCount;
-        if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying()) {
+        if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying())
+        {
             state.sound.MUSIC.stop();
         }
     }
 }
 
 /** Draw pole and test for completion */
-export function drawFinishLine() {
+export function drawFinishLine()
+{
     const f = state.flagPole;
     // Pole style
     push();
     const poleGradientSteps = 8;
-    for (let i = 0; i < poleGradientSteps; i++) {
+    for (let i = 0; i < poleGradientSteps; i++)
+    {
         const t = i / (poleGradientSteps - 1);
-        const col = lerpColor(color(30,30,30), color(180,180,200), t);
+        const col = lerpColor(color(30, 30, 30), color(180, 180, 200), t);
         stroke(col);
         line(f.x_pos + i * (f.width / poleGradientSteps), f.y_pos, f.x_pos + i * (f.width / poleGradientSteps), f.y_pos - f.height);
     }
@@ -231,12 +262,15 @@ export function drawFinishLine() {
 }
 
 // particle spawn when win triggered
-export function ensureWinParticles() {
-    if (state.winFrame === null) {
+export function ensureWinParticles()
+{
+    if (state.winFrame === null)
+    {
         state.winFrame = frameCount;
         state.sound.WIN.play();
         // Initial celebratory burst with 120 particles
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 120; i++)
+        {
             state.particles.push({
                 x: state.flagPole.x_pos + random(-40, 40),
                 y: state.flagPole.y_pos - state.flagPole.height + random(-20, 20),
@@ -251,7 +285,8 @@ export function ensureWinParticles() {
         for (const p of state.particles) { if (!p.maxLife) p.maxLife = p.life; }
     }
     // Drip-feed sparkle: every 5 frames adds a lighter particle for celebration :)
-    if (frameCount % 5 === 0) {
+    if (frameCount % 5 === 0)
+    {
         state.particles.push({
             x: state.flagPole.x_pos,
             y: state.flagPole.y_pos - state.flagPole.height,
@@ -265,7 +300,8 @@ export function ensureWinParticles() {
         last.maxLife = last.life;
     }
     // Particle integration + pruning
-    for (let i = state.particles.length - 1; i >= 0; i--) {
+    for (let i = state.particles.length - 1; i >= 0; i--)
+    {
         const p = state.particles[i];
         p.x += p.vx;
         p.y += p.vy;
@@ -274,11 +310,13 @@ export function ensureWinParticles() {
         if (p.life <= 0) { state.particles.splice(i, 1); }
     }
     // Draw remaining particles (confetti over flag pole)
-    if (state.particles.length) {
+    if (state.particles.length)
+    {
         push();
         colorMode(HSB, 360, 100, 100, 100);
         noStroke();
-        for (const p of state.particles) {
+        for (const p of state.particles)
+        {
             const t = 1 - (p.life / p.maxLife);
             const alpha = 100 * (1 - t);
             fill(p.hue, 80, 100, alpha);
