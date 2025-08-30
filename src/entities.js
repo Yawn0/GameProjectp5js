@@ -11,25 +11,25 @@ export class GameCharacter {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-    this.vy = 0;                 // vertical velocity (integrated each frame)
+        this.vy = 0;                 // vertical velocity (integrated each frame)
         this.isLeft = false;
         this.isRight = false;
         this.isFalling = false;
         this.isPlummeting = false;
         this.isDead = false;
-    this.dropThroughFrames = 0;  // frames remaining to ignore platforms
-    this.plummetSoundPlayed = false; // prevent repeat sound spam
-    this.walkCycle = 0;          // phase accumulator for walking animation
+        this.dropThroughFrames = 0;  // frames remaining to ignore platforms
+        this.plummetSoundPlayed = false; // prevent repeat sound spam
+        this.walkCycle = 0;          // phase accumulator for walking animation
     }
     reset(floorY) {
         this.x = width / 2;
         this.y = floorY;
-    this.vy = 0;
+        this.vy = 0;
         this.isFalling = false;
         this.isPlummeting = false;
-    this.dropThroughFrames = 0;
-    this.plummetSoundPlayed = false;
-    this.walkCycle = 0;
+        this.dropThroughFrames = 0;
+        this.plummetSoundPlayed = false;
+        this.walkCycle = 0;
     }
 }
 
@@ -58,7 +58,7 @@ export class Platform {
         this.y_pos = y; // top surface Y
         this.width = width;
         this.height = height;
-    this.level = level; // 0 = first layer, 1 = second layer, etc. (useful for spacing rules)
+        this.level = level; // 0 = first layer, 1 = second layer, etc. (used for spacing rules)
     }
 }
 
@@ -74,7 +74,6 @@ export class FlagPole {
 }
 
 // Factories: single responsible point for creating entities / value objects.
-// If a constructor or structure changes we only update here.
 export const factory = {
     collectible: (x, y, size) => new Collectible(x, y, size),
     randomCollectible: (y) => new Collectible(random(WORLD_WIDTH), y),
@@ -84,11 +83,13 @@ export const factory = {
     platform: (x, y, w, h, level) => new Platform(x, y, w, h, level),
     flagPole: (x, y) => new FlagPole(x, y),
     gameChar: (floorY) => new GameCharacter(width / 2, floorY),
+
     // Simple value-object helpers for scenery bits
     tree: (x) => ({ x }),
     rock: (x, size) => ({ x, size }),
     flower: (x, height, colorIndex) => ({ x, height, colorIndex }),
     grassTuft: (x, height) => ({ x, height }),
     worm: (x, y, segmentCount, dir, speed, phase) => ({ x, y, segmentCount, dir, speed, phase }),
-    mountain: (x_pos, width) => ({ x_pos, width })
+    mountain: (x_pos, width) => ({ x_pos, width }),
+    hill: (x, radius) => ({ x, radius })
 };

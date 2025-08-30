@@ -45,7 +45,8 @@ export const state = {
     cameraPosX: 0,
     gameChar: null,
     gameScore: 0,
-    treesX: [],
+    // Decorative & interactive collections
+    trees: [],       // tree objects (was treesX holding raw x positions)
     cloudsCoordinates: [],
     clouds: [],
     mountains: [],

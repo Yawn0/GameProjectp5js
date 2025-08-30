@@ -75,16 +75,17 @@ export function drawMountain(mountain, floorPos_y, camX) {
 }
 
 /** Stylized layered pine tree. */
-export function drawTree(treePos_x, treePos_y) {
+export function drawTree(tree, treePos_y) {
+    const x = tree.x;
     const sway = state.windValue * 8; // increased horizontal sway
     fill(140, 70, 20);
-    rect(treePos_x + sway * 0.2, treePos_y, 40, -150);
+    rect(x + sway * 0.2, treePos_y, 40, -150);
     fill(100, 160, 35);
-    triangle(treePos_x - 40 + sway, treePos_y - 60, treePos_x + 20 + sway, treePos_y - 120, treePos_x + 80 + sway, treePos_y - 60);
+    triangle(x - 40 + sway, treePos_y - 60, x + 20 + sway, treePos_y - 120, x + 80 + sway, treePos_y - 60);
     fill(100, 170, 35);
-    triangle(treePos_x - 30 + sway * 1.1, treePos_y - 95, treePos_x + 20 + sway * 1.1, treePos_y - 150, treePos_x + 70 + sway * 1.1, treePos_y - 95);
+    triangle(x - 30 + sway * 1.1, treePos_y - 95, x + 20 + sway * 1.1, treePos_y - 150, x + 70 + sway * 1.1, treePos_y - 95);
     fill(100, 180, 35);
-    triangle(treePos_x - 20 + sway * 1.2, treePos_y - 125, treePos_x + 20 + sway * 1.2, treePos_y - 180, treePos_x + 60 + sway * 1.2, treePos_y - 125);
+    triangle(x - 20 + sway * 1.2, treePos_y - 125, x + 20 + sway * 1.2, treePos_y - 180, x + 60 + sway * 1.2, treePos_y - 125);
 }
 
 /** Jagged canyon polygon hazard. */
@@ -246,7 +247,9 @@ export function drawScenery() {
     // 3. Mountains (slight parallax)
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
     // 4. Mid-ground trees and static props
-    for (let i = 0; i < state.treesX.length; i++) drawTree(state.treesX[i], state.floorPosY);
+    for (let i = 0; i < state.trees.length; i++) {
+        drawTree(state.trees[i], state.floorPosY);
+    }
     for (let i = 0; i < state.rocks.length; i++) drawRock(state.rocks[i]);
     for (let i = 0; i < state.flowers.length; i++) drawFlower(state.flowers[i]);
     for (let i = 0; i < state.grassTufts.length; i++) drawGrassTuft(state.grassTufts[i]);
