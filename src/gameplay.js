@@ -1,5 +1,5 @@
 /* Gameplay loop helpers: input, physics, scoring, UI (ES module) */
-import { BLOBBY, JUMP_HEIGHT, GRAVITY_SPEED, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state } from './constants.js';
+import { BLOBBY, JUMP_HEIGHT, GRAVITY_SPEED, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state, GRAVITY_ACCEL, JUMP_VELOCITY } from './constants.js';
 import { blobbyJumpingLeft, blobbyJumpingRight, blobbyWalkingLeft, blobbyWalkingRight, blobbyJumping, blobbyStandingFront } from './character.js';
 
 /** Map raw keyCode to canonical direction key. */
@@ -21,7 +21,9 @@ export function keyPressed() {
     else if (directionKey === RIGHT_ARROW) { g.isRight = true; }
     else if (directionKey === UP_ARROW && !g.isFalling) {
         state.sound.JUMP.play();
-        g.y -= JUMP_HEIGHT;
+        // Initiate smooth jump: set upward velocity
+        g.vy = -JUMP_VELOCITY;
+        g.isFalling = true;
     }
     else if (directionKey === DOWN_ARROW) {
         // Initiate drop-through: temporarily ignore platforms while moving down
@@ -58,11 +60,20 @@ export function drawCharacter() {
     if (g.isLeft) { g.x -= BLOBBY.SPEED; }
     else if (g.isRight) { g.x += BLOBBY.SPEED; }
 
-    if (g.y < state.floorPosY) {
-        g.y += GRAVITY_SPEED;
-        g.isFalling = true;
+    // Apply gravity + velocity integration
+    if (g.isPlummeting) {
+        // plummeting handled later
+    } else {
+        g.vy += GRAVITY_ACCEL; // accumulate gravity
+        g.y += g.vy;
+        if (g.y >= state.floorPosY) {
+            g.y = state.floorPosY;
+            g.vy = 0;
+            g.isFalling = false;
+        } else {
+            g.isFalling = g.vy > 0; // falling when moving downward
+        }
     }
-    else { g.isFalling = false; }
 
     // Platform collision (landing)
     // Approximate character bottom as g.y, and horizontal bounds as body width * 0.5
@@ -76,6 +87,7 @@ export function drawCharacter() {
             const abovePlatform = g.y <= p.y_pos + 5; // not falling through from below
             if (withinX && closeToTop && abovePlatform) {
                 g.y = p.y_pos; // snap to platform top
+                g.vy = 0;
                 g.isFalling = false;
                 onPlatform = true;
                 break;
@@ -88,6 +100,7 @@ export function drawCharacter() {
 
     if (g.isPlummeting) {
         g.y += PLUMMET_SPEED;
+        g.vy = 0;
         g.isLeft = false;
         g.isRight = false;
     }

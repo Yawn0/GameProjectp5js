@@ -7,6 +7,7 @@ export class GameCharacter {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+    this.vy = 0; // vertical velocity
         this.isLeft = false;
         this.isRight = false;
         this.isFalling = false;
@@ -17,6 +18,7 @@ export class GameCharacter {
     reset(floorY) {
         this.x = width / 2;
         this.y = floorY;
+    this.vy = 0;
         this.isFalling = false;
         this.isPlummeting = false;
     this.dropThroughFrames = 0;
