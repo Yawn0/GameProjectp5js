@@ -13,6 +13,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     state.collectables = [];
     state.canyons = [];
     state.platforms = [];
+    state.treesX = [];
 
     const playerStartX = CANVAS_WIDTH / 2; // starting x
     const SAFE_RADIUS = 150;
@@ -124,13 +125,38 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         state.collectables.push(new Collectible(x, state.floorPosY));
         groundToPlace--;
     }
+
+    // Trees (now part of dynamic content) - denser with soft clustering
+    const treeMinGap = 85; // base minimum distance
+    const treeFlagSafe = 120;
+    const treeCountTarget = max(40, floor(WORLD_WIDTH / 100)); // scale with world width
+    let treeAttempts = 0;
+    while (state.treesX.length < treeCountTarget && treeAttempts < treeCountTarget * 30) {
+        treeAttempts++;
+        const tx = random(WORLD_WIDTH);
+        // Avoid player safe zone & near flag pole
+        if (tx > safeLeft - 40 && tx < safeRight + 40) continue;
+        if (abs(tx - flagPoleX) < treeFlagSafe) continue;
+        // Avoid canyons span (with small margin so trunks not over gap)
+        let overCanyon = false;
+        for (const can of state.canyons) {
+            if (tx > can.x_pos - 30 && tx < can.x_pos + can.width + 30) { overCanyon = true; break; }
+        }
+        if (overCanyon) continue;
+        // Spacing to other trees with probabilistic acceptance for moderate distances
+        let tooClose = false;
+        for (const existing of state.treesX) {
+            const d = abs(existing - tx);
+            if (d < treeMinGap * 0.5) { tooClose = true; break; } // hard reject very close
+            if (d < treeMinGap && random() < 0.6) { tooClose = true; break; } // soft reject
+        }
+        if (tooClose) continue;
+        state.treesX.push(tx);
+    }
+    state.treesX.sort((a,b)=>a-b);
 }
 
 function generateBackdrop() {
-    // Trees
-    state.treesX = [];
-    const treeSpacing = 250;
-    for (let x = 85; x < WORLD_WIDTH; x += treeSpacing) { state.treesX.push(x + random(-40, 40)); }
     // Clouds seed
     state.cloudsCoordinates = [];
     const cloudCount = 12;

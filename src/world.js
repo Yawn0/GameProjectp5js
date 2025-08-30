@@ -1,5 +1,5 @@
 /* World generation + rendering helpers (ES module) */
-import { state } from './constants.js';
+import { state, WORLD_WIDTH } from './constants.js';
 
 /** Draw ground strip. */
 export function drawGround() {
@@ -10,22 +10,46 @@ export function drawGround() {
 
 /** Expand seed coordinates into fluffy cloud segments. */
 export function generateClouds(cloudsCoordinates) {
-    let clouds = [];
+    const clouds = [];
     for (let i = 0; i < cloudsCoordinates.length; i++) {
-        let cloud = cloudsCoordinates[i];
-        clouds.push({ x: cloud.x_pos, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60 });
-        clouds.push({ x: cloud.x_pos + 40, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 70 });
-        clouds.push({ x: cloud.x_pos + 80, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60 });
-        clouds.push({ x: cloud.x_pos + 30, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 80 });
+        const cloud = cloudsCoordinates[i];
+        const speed = random(0.15, 0.45); // individual cluster speed
+    const light = random(215, 250); // base brightness for entire cluster
+        // Keep cluster cohesion by sharing speed among its ellipses
+    clouds.push({ x: cloud.x_pos, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
+    clouds.push({ x: cloud.x_pos + 40, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 70, speed, light });
+    clouds.push({ x: cloud.x_pos + 80, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
+    clouds.push({ x: cloud.x_pos + 30, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 80, speed, light });
     }
     return clouds;
 }
 
 /** Draw one cloud ellipse. */
 export function drawCloud(cloud) {
-    fill(255);
     noStroke();
+    const base = cloud.light || 235;
+    const shadow = max(160, base - 55);
+    const highlight = min(255, base + 12);
+
+    // Subtle shadow (draw first)
+    fill(shadow, 140);
+    ellipse(cloud.x + cloud.width * 0.15, cloud.y + cloud.height * 0.12, cloud.width * 0.95, cloud.height * 0.78);
+
+    // Main body
+    fill(base, 235);
     ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
+
+    // Highlight (top-left)
+    fill(highlight, 220);
+    ellipse(cloud.x - cloud.width * 0.18, cloud.y - cloud.height * 0.18, cloud.width * 0.55, cloud.height * 0.45);
+
+    // Horizontal drift
+    if (cloud.speed) {
+        cloud.x += cloud.speed;
+        if (cloud.x - state.cameraPosX > WORLD_WIDTH + 150) { // wrap after exiting right side
+            cloud.x = -150 + state.cameraPosX;
+        }
+    }
 }
 
 /** Composite triangle mountain with inner + snow layers. */
