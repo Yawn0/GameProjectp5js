@@ -285,6 +285,10 @@ export function drawGameOver() {
     fill(255);
     textSize(32);
     text('RESTART', CANVAS_WIDTH / 2, btnY + btnH / 2 + 4);
+    // Keyboard hint
+    textSize(18);
+    fill(255, 230);
+    text('Press R to restart', CANVAS_WIDTH / 2, btnY + btnH + 32);
     pop();
 }
 
@@ -367,5 +371,9 @@ export function drawGameWin() {
     fill(60);
     textSize(32);
     text('RESTART', CANVAS_WIDTH / 2, btnY + btnH / 2 + 4);
+    // Keyboard hint
+    textSize(18);
+    fill(255, 240);
+    text('Press R to restart', CANVAS_WIDTH / 2, btnY + btnH + 32);
     pop();
 }
