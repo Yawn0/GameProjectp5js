@@ -1,4 +1,4 @@
-# TECH_NOTES
+# TECH NOTES
 
 Deep‑dive into systems, algorithms, and extension points.
 
@@ -18,7 +18,7 @@ Order matters to enforce invariants:
 2. Derive spawn safe zone + flag safety margins.
 3. WORLD WIDTH: randomly chosen each start: `WORLD_WIDTH = CANVAS_WIDTH * randomInt[2,5]`.
 4. CANYONS: rejection sampling with spacing + flag exclusion.
-4. PLATFORMS Layer 0: mandatory canyon bridges → sparse extras (respect safe/flag + spacing).
+4. PLATFORMS Layer 0: mandatory canyon bridges => sparse extras (respect safe/flag + spacing).
 5. PLATFORMS Layer 1: adjacency placement. Constraints:
    - Choose random base L0 platform.
    - Random side (left/right) + gap in [MIN_GAP_ADJ, MIN_GAP_ADJ+60].
@@ -63,7 +63,7 @@ This prevents triggering mid‑air. Once plummeting: horizontal movement halts; 
 ## 7. Worm System
 Data: `{ x, y, segmentCount, dir, speed, phase }`.
 Render: each frame `phase += 0.15`; segments spaced by constant; `sin(phase - index * 0.6)` yields traveling wave.
-Collision: simple proximity when player near ground (`abs(y - floor) < threshold`) + horizontal distance < 20 → life penalty + splash + sound.
+Collision: simple proximity when player near ground (`abs(y - floor) < threshold`) + horizontal distance < 20 => life penalty + splash + sound.
 Design Intent: Encourage careful jumping; ground rushing risks accidental worm kills.
 
 Possible Enhancements:
@@ -86,13 +86,13 @@ All world drawing occurs inside a `translate(-cameraPosX, 0)`; HUD drawn afterwa
 
 ## 11. Audio Strategy
 - All sounds loaded in `setup` with base volume applied.
-- MUSIC: volume set to 0 when muted instead of stopping. Keeps decoding & playback active → instant resume.
+- MUSIC: volume set to 0 when muted instead of stopping. Keeps decoding & playback active => instant resume.
 - Worm death uses slight playback rate variance for organic feel.
 
 Possible Improvement: cross‑fade music changes or dynamic volume scaling with game state.
 
 ## 12. Start Screen Fade
-`showStartScreen` gate halts gameplay logic; on first key/mouse input → `showStartScreen=false`, `startScreenFade=1`. HUD draws overlay with alpha decaying each frame (handled in `hud.js`).
+`showStartScreen` gate halts gameplay logic; on first key/mouse input => `showStartScreen=false`, `startScreenFade=1`. HUD draws overlay with alpha decaying each frame (handled in `hud.js`).
 
 ## 13. Extension Ideas
 - Add enemies with patrol + detection cones (reuse worm structure w/ AI state machine).

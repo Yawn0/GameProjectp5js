@@ -1,19 +1,50 @@
-# Platformer Game (p5.js)
+# Blobby Adventure
 
-A side‑scrolling mini platformer built with vanilla p5.js + ES modules. The codebase focuses on clear separation of concerns, lightweight entity classes, and a factory pattern to centralize object creation.
+A side‑scrolling mini platformer built with vanilla p5.js + ES modules. 
+The codebase focuses on clear separation of concerns, lightweight entity classes, and a factory pattern to centralize object creation.
+
+## Getting Started / How to run
+
+Recommended (modules + audio working):
+1. Open a terminal in the project root.
+2. Start a tiny static server (pick one):
+  - VS Code: install "Live Server" extension => Right‑click `index.html` => "Open with Live Server".
+  - Python : `python -m http.server 5500`
+  - Node (npx): `npx http-server -p 5500 -c-1`
+3. Visit `http://localhost:5500/` (or the port Live Server shows). The ES module `index.html` loads cleanly and sounds play.
+
+All of this because ES module `<script type="module" src="./src/main.js">` triggers CORS blocking under the `file://` protocol (imports + audio XHR fail in Chrome).
+
+Troubleshooting:
+- Seeing `Access to script ... has been blocked by CORS policy` => you opened `index.html` via `file://`; use a local server or `offline.html`.
+- No sound offline in Chrome => try Firefox.
+
+
+## Controls
+Keyboard (WASD & Arrows supported):
+- Left / A: move left
+- Right / D: move right
+- Up / W / Space: jump
+- Down / S: drop through platform (briefly disables landing collisions)
+- M: toggle music mute/unmute
+- R: restart after win / game over
+
+Mouse:
+- Click music button (top‑right) to mute/unmute.
+- Click restart button on win / game over banners.
 
 ## High‑Level Architecture
 
 Modules:
-- `constants.js` – Core numeric constants and a single shared mutable `state` object (wind, camera, arrays of entities, flags for start screen & music, etc.).
-- `entities.js` – Lightweight data classes plus the `factory` (central creation point for all game objects & simple value objects).
-- `world.js` – Pure rendering helpers for ground / scenery / hazards / platforms / critters. Contains no progression logic.
-- `character.js` – Pose rendering (animation variants) for the player character.
-- `gameplay.js` – Input mapping, physics integration (gravity, jump, drop‑through platforms), scoring, win/lose checks, particle spawning on win.
-- `hud.js` – Screen‑space UI (lives, score, music toggle button, start screen overlay, win/lose banners).
-- `generation.js` – All procedural generation & restart logic (world width randomization, content density scaling, backdrop + entities population). Pure state mutation, no rendering.
-- `main.js` – p5 lifecycle (`setup`, `draw`) + per‑frame orchestration (camera, wind, collision loops). Delegates generation to `generation.js` to stay lean.
-- `hazards.js` – Focused hazard handlers (currently worm collision + splash spawning & life penalty) to keep the main loop readable.
+- `constants.js` - Core numeric constants and a single shared mutable `state` object (wind, camera, arrays of entities, flags for start screen & music, etc.).
+- `entities.js` - Lightweight data classes plus the `factory` (central creation point for all game objects & simple value objects).
+- `world.js` - Pure rendering helpers for ground / scenery / hazards / platforms / critters. Contains no progression logic.
+- `character.js` - Pose rendering (animation variants) for the player character.
+- `gameplay.js` - Input mapping, physics integration (gravity, jump, drop‑through platforms), scoring, win/lose checks, particle spawning on win.
+- `hud.js` - Screen‑space UI (lives, score, music toggle button, start screen overlay, win/lose banners).
+- `generation.js` - All procedural generation & restart logic (world width randomization, content density scaling, backdrop + entities population). Pure state mutation, no rendering.
+- `main.js` - p5 lifecycle (`setup`, `draw`) + per‑frame orchestration (camera, wind, collision loops). Delegates generation to `generation.js` to stay lean.
+- `hazards.js` - Focused hazard handlers (currently worm collision + splash spawning & life penalty) to keep the main loop readable.
 
 See `TECH_NOTES.md` for deeper implementation details.
 
@@ -78,7 +109,7 @@ Start Screen & Music:
 Wind & Parallax:
 - A noise‑driven `windValue` animates scenery sway (trees, flowers, grass) + subtle cloud bobbing.
 - Mountains & hills apply low parallax factors for depth; clouds wrap horizontally relative to camera for continuous sky.
- - Three tree layers for depth (render order now: hills → clouds → mountains → far trees → mid trees → foreground trees):
+ - Three tree layers for depth (render order now: hills => clouds => mountains => far trees => mid trees => foreground trees):
    - Layer 3 (far): sparse, smallest scale, slow parallax (≈0.06), now drawn IN FRONT of clouds & mountains to pop depth.
    - Layer 2 (mid): moderate count, medium scale, parallax (≈0.10), between far & foreground.
    - Layer 1 (foreground): dense (thinned), full detail, no parallax.
@@ -104,31 +135,5 @@ Procedural Generation Highlights:
 - Trees: foreground layer uses soft clustering (reduced baseline density); mid & far layers generated separately at fractional counts (e.g. ~35% & ~18% of foreground) with wider spacing + per‑tree scale. Far layer ordering changed (now in front of mountains/clouds).
 - Decoration (rocks, flowers, grass): density scales with world width using capped attempt loops to avoid infinite retries.
 - Worms: random ground spawn excluding safe zones & canyon spans; parameter randomization for movement variety.
- - Worms: random ground spawn excluding player spawn, canyon spans, and a finish-flag safe zone (celebration area). Runtime logic prevents worms wandering into the flag’s immediate vicinity.
+ - Worms: random ground spawn excluding player spawn, canyon spans, and a finish-flag safe zone (celebration area). Runtime logic prevents worms wandering into the flag's immediate vicinity.
 - Collectibles: chance on platforms + limited ground collectibles pre‑flag to encourage forward motion.
-
-## Controls
-Keyboard (WASD & Arrows supported):
-- Left / A: move left
-- Right / D: move right
-- Up / W / Space: jump
-- Down / S: drop through platform (briefly disables landing collisions)
-- M: toggle music mute/unmute
-- R: restart after win / game over
-
-Mouse:
-- Click music button (top‑right) to mute/unmute.
-- Click restart button on win / game over banners.
-
-## Skills Practiced
-- Modular ES module architecture & separation of concerns.
-- Factory pattern for consistent object creation & future extensibility.
-- Procedural generation with layered constraints (reachability, spacing, exclusion zones).
-- Physics & collision simplification (tolerant landing, drop‑through mechanic, plummet state).
-- Audio UX: non‑destructive mute strategy to avoid restart latencies.
-- Particle & small animation systems (win burst, worm splash, wind sway) optimizing for readability.
-- State centralization + minimal object churn for performance.
-- Documentation: progressive commenting + deep dive in `TECH_NOTES.md`.
-
-## Further Technical Details
-For deeper explanations (generation algorithm step order, particle lifecycle, wind math, performance considerations, and extension ideas) see `TECH_NOTES.md`.
