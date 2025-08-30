@@ -1,6 +1,6 @@
 # Blobby Adventure
 
-A side‑scrolling mini platformer built with vanilla p5.js + ES modules. 
+A side‑scrolling mini platformer with procedural world generation, built with vanilla p5.js + ES modules. 
 The codebase focuses on clear separation of concerns, lightweight entity classes, and a factory pattern to centralize object creation.
 
 ## Getting Started / How to run
