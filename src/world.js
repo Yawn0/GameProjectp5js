@@ -218,25 +218,57 @@ export function drawCollectible(collectible) {
 /** Crawling worm composed of small segments with sinusoidal undulation. */
 export function drawWorm(worm) {
     // Update motion
-    worm.phase += 0.2;
-    worm.x += worm.speed * worm.dir;
+    worm.phase += 0.15;
+    worm.x += worm.speed * 0.6 * worm.dir;
     // Reverse direction at bounds
     if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
     if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
-    const amplitude = 3; 
+    const amplitude = 2.2; 
     const segmentSpacing = 5;
     noStroke();
     for (let s = 0; s < worm.segmentCount; s++) {
         const segX = worm.x - worm.dir * s * segmentSpacing;
         const wave = sin(worm.phase - s * 0.6) * amplitude;
-        const segY = worm.y + wave * 0.2;
+        const segY = worm.y + wave * 0.15;
         const shade = 180 + s * 8;
         fill(shade, 100, 60);
-    ellipse(segX, segY, 7, 5);
+        ellipse(segX, segY, 7, 5);
     }
     // Head details
     fill(0);
     ellipse(worm.x + worm.dir * 2, worm.y - 1, 2, 2);
+}
+
+/** Brief splash effect */
+export function drawSplash(s) {
+    // Initialize particle rays once
+    if (!s.particles) {
+        s.particles = [];
+        for (let i = 0; i < 10; i++) {
+            s.particles.push({
+                ang: random(TWO_PI),
+                speed: random(1, 3.5),
+                r: 0,
+                maxR: random(14, 26)
+            });
+        }
+    }
+    const t = 1 - (s.life / s.maxLife);
+    for (const p of s.particles) {
+        p.r = lerp(0, p.maxR, t);
+        const px = s.x + cos(p.ang) * p.r;
+        const py = s.y - 4 + sin(p.ang) * p.r * 0.6;
+        noStroke();
+        fill(255, 200, 120, 200 * (1 - t));
+        ellipse(px, py, 4, 4);
+    }
+    // Central expanding ring
+    noFill();
+    stroke(255, 220, 150, 180 * (1 - t));
+    strokeWeight(4 - t * 3);
+    const ringR = 8 + t * 18;
+    ellipse(s.x, s.y - 4, ringR * 1.5, ringR);
+    s.life--;
 }
 
 

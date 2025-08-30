@@ -58,6 +58,7 @@ export const state = {
     flowers: [],      // colorful flowers
     grassTufts: [],   // small grass clumps
     worms: [],        // crawling ground critters
+    splashes: [],     // temporary worm death splash effects
     windSwishes: [],  // transient visual wind streaks
     flagPole: null,
     lives: 0,

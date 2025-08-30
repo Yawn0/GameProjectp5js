@@ -1,7 +1,7 @@
 /* Main entry module: orchestrates p5 lifecycle using imported modules + shared state */
 import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, WORLD_WIDTH, state } from './constants.js';
 import { factory, Collectible, Canyon, Platform } from './entities.js';
-import { drawGround, drawScenery, drawCollectible } from './world.js';
+import { drawGround, drawScenery, drawCollectible, drawSplash } from './world.js';
 import { drawCharacter, checkPlayerDie, drawFinishLine, checkCollectable, ensureWinParticles } from './gameplay.js';
 import { drawLives, drawGameScore, drawGameOver, drawGameWin, drawStartScreen, drawMusicToggle } from './hud.js';
 import { keyPressed as gameplayKeyPressed, keyReleased as gameplayKeyReleased } from './gameplay.js';
@@ -311,7 +311,7 @@ function generateLevelContent({
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
-        state.worms.push(factory.worm(wx, state.floorPosY - 6, floor(random(4, 7)), random([-1, 1]), random(0.08, 0.15), random(TWO_PI)));
+        state.worms.push(factory.worm(wx, state.floorPosY - 3, floor(random(4, 6)), random([-1, 1]), random(0.07, 0.1), random(TWO_PI)));
     }
 }
 
@@ -365,9 +365,11 @@ window.setup = function setup()
         WIN: loadSound('assets/win.mp3'),
         LOST: loadSound('assets/lost.wav'),
         PLUMMET: loadSound('assets/plummeting.wav'),
+        WORM_DIE: loadSound('assets/wormDies.wav'),
         MUSIC: null
     };
     for (const k of ['JUMP', 'COLLECT', 'DEATH', 'WIN', 'LOST', 'PLUMMET']) state.sound[k].setVolume(state.sound.baseVolume);
+    state.sound.WORM_DIE.setVolume(state.sound.baseVolume * 2.5);
     state.sound.MUSIC = loadSound('assets/music.mp3', (snd) => {
         const vol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
         snd.setVolume(vol);
@@ -403,6 +405,41 @@ window.draw = function draw() {
     push();
     translate(-state.cameraPosX, 0);
     drawScenery();
+
+    // Worm collisions (character squishes worms when overlapping horizontally & near ground)
+    if (!state.showStartScreen && !gameCharacter.isDead) {
+        const charX = gameCharacter.x;
+        for (let i = state.worms.length - 1; i >= 0; i--) {
+            const w = state.worms[i];
+            const dx = abs(charX - w.x);
+            if (dx < 20 && abs(gameCharacter.y - state.floorPosY) < 6) { // simple proximity check near ground
+                // Spawn splash with longer life & particle rays
+                const splash = factory.splash(w.x, w.y);
+                splash.maxLife = 24;
+                splash.life = splash.maxLife;
+                state.splashes.push(splash);
+                // Play sound
+                if (state.sound && state.sound.WORM_DIE) { 
+                    try { state.sound.WORM_DIE.rate(random(0.9,1.1)); } catch(e) {}
+                    state.sound.WORM_DIE.play(); 
+                }
+                // Remove worm and apply life penalty
+                state.worms.splice(i, 1);
+                state.lives = max(0, state.lives - 1);
+                if (state.lives <= 0 && state.loseFrame === null) {
+                    gameCharacter.isDead = true;
+                    state.loseFrame = frameCount;
+                }
+            }
+        }
+    }
+
+    // Draw & update splashes (world space)
+    for (let i = state.splashes.length - 1; i >= 0; i--) {
+        const s = state.splashes[i];
+        drawSplash(s);
+        if (s.life <= 0) { state.splashes.splice(i, 1); }
+    }
 
     if (!state.showStartScreen) {
         checkPlayerDie();

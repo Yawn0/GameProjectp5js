@@ -90,6 +90,7 @@ export const factory = {
     flower: (x, height, colorIndex) => ({ x, height, colorIndex }),
     grassTuft: (x, height) => ({ x, height }),
     worm: (x, y, segmentCount, dir, speed, phase) => ({ x, y, segmentCount, dir, speed, phase }),
+    splash: (x, y) => ({ x, y, life: 18, frame: 0 }),
     mountain: (x_pos, width) => ({ x_pos, width }),
     hill: (x, radius) => ({ x, radius })
 };

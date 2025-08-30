@@ -173,6 +173,10 @@ export function drawStartScreen() {
     const marginX = 80;
     textSize(64);
     text('BLOBBY ADVENTURE', marginX, 70);
+    textSize(28);
+    fill(255, 70, 70, 240 * alpha);
+    text("Don't kill the worms!", marginX, 70 + 64 + 12);
+    fill(255, 240 * alpha);
     textSize(22);
     const lines = [
         'Controls:',
@@ -185,7 +189,7 @@ export function drawStartScreen() {
         '',
         'Press any key or click to start'
     ];
-    let y = 170;
+    let y = 170 + 28; // push list slightly down after subtitle
     for (const l of lines) { text(l, marginX, y); y += 32; }
     pop();
 }
