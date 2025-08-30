@@ -17,6 +17,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
     state.flowers = [];
     state.grassTufts = [];
     state.treesX = [];
+    state.worms = [];
 
     const playerStartX = CANVAS_WIDTH / 2; // starting x
     const SAFE_RADIUS = 150;
@@ -200,6 +201,19 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         if (close) continue;
         state.grassTufts.push({ x: gx, height: random(10, 20) });
     }
+
+    // Worms: small crawling critters on ground (avoid canyons & safe zone)
+    const wormCount = 4;
+    let wormAttempts = 0;
+    while (state.worms.length < wormCount && wormAttempts < wormCount * 40) {
+        wormAttempts++;
+        const wx = random(WORLD_WIDTH);
+        if (wx > safeLeft - 40 && wx < safeRight + 40) continue;
+        let overCanyonWorm = false;
+        for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
+        if (overCanyonWorm) continue;
+	state.worms.push({ x: wx, y: state.floorPosY - 6, segmentCount: floor(random(4, 7)), dir: random([-1,1]), speed: random(0.08, 0.15), phase: random(TWO_PI) }); // slower & shorter
+    }
 }
 
 function generateBackdrop() {
@@ -232,6 +246,7 @@ function startGame() {
     const flagPoleX = WORLD_WIDTH - 150;
     generateLevelContent({ flagPoleX });
     state.flagPole = factory.flagPole(flagPoleX, state.floorPosY);
+    state.windSwishes = [];
 }
 
 window.setup = function setup() {
@@ -241,11 +256,18 @@ window.setup = function setup() {
         JUMP: loadSound('assets/jump.wav'),
         COLLECT: loadSound('assets/collect.wav'),
         DEATH: loadSound('assets/death.wav'),
-        WIN: loadSound('assets/win.wav'),
+        WIN: loadSound('assets/win.mp3'),
         LOST: loadSound('assets/lost.wav'),
-        PLUMMET: loadSound('assets/plummeting.wav')
+        PLUMMET: loadSound('assets/plummeting.wav'),
+        MUSIC: null
     };
     for (const k of ['JUMP','COLLECT','DEATH','WIN','LOST','PLUMMET']) state.sound[k].setVolume(state.sound.baseVolume);
+    state.sound.MUSIC = loadSound('assets/music.mp3', (snd) => {
+        snd.setVolume(state.sound.baseVolume * 0.3);
+        snd.setLoop(true);
+        // Attempt autoplay; some browsers block until user gesture
+        try { snd.play(); } catch (e) { /* fallback will trigger on key press */ }
+    });
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     state.floorPosY = height * FLOOR_HEIGHT_RATIO;
     startGame();

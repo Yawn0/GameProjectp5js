@@ -60,13 +60,16 @@ export function blobbyJumping() {
 /** Walk cycle facing left */
 export function blobbyWalkingLeft() {
     const gameChar = state.gameChar;
+    const phase = gameChar.walkCycle;
+    const footLift = sin(phase) * 4;
+    const rearFootOffset = -sin(phase + PI / 2) * 3;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
-    ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+    ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 - footLift, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
     fill(BLOBBY.COLORS.BODY);
     ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
     fill(BLOBBY.COLORS.FEET);
-    ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+    ellipse(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 + 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 - rearFootOffset, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
     fill(BLOBBY.COLORS.ARM);
     rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 20, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5);
     noStroke();
@@ -84,13 +87,16 @@ export function blobbyWalkingLeft() {
 /** Walk cycle facing right */
 export function blobbyWalkingRight() {
     const gameChar = state.gameChar;
+    const phase = gameChar.walkCycle;
+    const footLift = sin(phase) * 4;
+    const rearFootOffset = -sin(phase + PI / 2) * 3;
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
-    ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+    ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.25 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 - footLift, BLOBBY.DIMENSIONS.FEET_WIDTH * 1.1, BLOBBY.DIMENSIONS.FEET_HEIGHT);
     fill(BLOBBY.COLORS.BODY);
     ellipse(gameChar.x, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT / 2 - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.BODY_WIDTH, BLOBBY.DIMENSIONS.BODY_HEIGHT);
     fill(BLOBBY.COLORS.FEET);
-    ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
+    ellipse(gameChar.x + BLOBBY.DIMENSIONS.BODY_WIDTH * 0.1 - 3, gameChar.y - BLOBBY.DIMENSIONS.FEET_HEIGHT / 2 - rearFootOffset, BLOBBY.DIMENSIONS.FEET_WIDTH, BLOBBY.DIMENSIONS.FEET_HEIGHT);
     fill(BLOBBY.COLORS.ARM);
     rect(gameChar.x - BLOBBY.DIMENSIONS.BODY_WIDTH / 2 + 15, gameChar.y - BLOBBY.DIMENSIONS.BODY_HEIGHT * 0.5 - BLOBBY.DIMENSIONS.ARM_LENGTH * 0.5, BLOBBY.DIMENSIONS.ARM_WIDTH, BLOBBY.DIMENSIONS.ARM_LENGTH, 5);
     noStroke();

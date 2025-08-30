@@ -57,6 +57,8 @@ export const state = {
     rocks: [], // small ground rocks
     flowers: [], // colorful flowers
     grassTufts: [], // small grass clumps
+    worms: [], // crawling ground critters
+    windSwishes: [], // transient visual wind streaks
     flagPole: null,
     lives: 0,
     particles: [], // win celebration particles

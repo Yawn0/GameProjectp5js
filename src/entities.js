@@ -15,6 +15,7 @@ export class GameCharacter {
         this.isDead = false;
     this.dropThroughFrames = 0; // frames remaining to ignore platforms
     this.plummetSoundPlayed = false; // prevent repeat sound
+    this.walkCycle = 0; // phase accumulator for walking animation
     }
     reset(floorY) {
         this.x = width / 2;
@@ -24,12 +25,13 @@ export class GameCharacter {
         this.isPlummeting = false;
     this.dropThroughFrames = 0;
     this.plummetSoundPlayed = false;
+    this.walkCycle = 0;
     }
 }
 
 // Coin / pickup token
 export class Collectible {
-    constructor(x, y, size = 40) {
+    constructor(x, y, size = 32) { // reduced default size
         this.x_pos = x;
         this.y_pos = y;
         this.size = size;

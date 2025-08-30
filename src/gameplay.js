@@ -14,6 +14,10 @@ export function getDirectionalKey(keyCode) {
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
     const gameCharacter = state.gameChar;
+    // Fallback: start background music on first key press if blocked
+    if (state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
+        try { state.sound.MUSIC.play(); } catch(e) {}
+    }
     if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
     if (gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
@@ -52,10 +56,11 @@ export function drawCharacter() {
     }
     if (gameCharacter.isLeft && gameCharacter.isFalling) { blobbyJumpingLeft(); }
     else if (gameCharacter.isRight && gameCharacter.isFalling) { blobbyJumpingRight(); }
-    else if (gameCharacter.isLeft) { blobbyWalkingLeft(); }
-    else if (gameCharacter.isRight) { blobbyWalkingRight(); }
+    else if (gameCharacter.isLeft) { gameCharacter.walkCycle += 0.25; blobbyWalkingLeft(); }
+    else if (gameCharacter.isRight) { gameCharacter.walkCycle += 0.25; blobbyWalkingRight(); }
     else if (gameCharacter.isFalling || gameCharacter.isPlummeting) { blobbyJumping(); }
     else { blobbyStandingFront(); }
+    if (!gameCharacter.isLeft && !gameCharacter.isRight) { gameCharacter.walkCycle *= 0.9; }
 
     if (gameCharacter.isLeft) { gameCharacter.x -= BLOBBY.SPEED; }
     else if (gameCharacter.isRight) { gameCharacter.x += BLOBBY.SPEED; }
@@ -161,33 +166,59 @@ export function checkPlayerDie() {
     if (state.lives <= 0 && state.loseFrame === null) {
         gameCharacter.isDead = true;
         state.loseFrame = frameCount;
-        // LOST sound already handled when last life was consumed
+        if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying()) {
+            state.sound.MUSIC.stop();
+        }
     }
 }
 
 /** Display remaining lives as hearts. */
 export function drawLives() {
-    fill(0);
-    textSize(32);
     for (let i = 0; i < state.lives; i++) {
         push();
-        translate(state.cameraPosX + 30 + i * 40, 30);
-        fill(255, 0, 0);
-        noStroke();
+        translate(state.cameraPosX + 32 + i * 42, 36);
+        const scaleFactor = 1.1;
+        scale(scaleFactor);
+        stroke(0);
+        strokeWeight(2.2);
+        fill(235, 30, 60);
         beginShape();
         vertex(0, 0);
-        bezierVertex(-10, -10, -20, 0, 0, 10);
-        bezierVertex(20, 0, 10, -10, 0, 0);
-        endShape();
+        bezierVertex(-10, -12, -22, 2, 0, 14);
+        bezierVertex(22, 2, 10, -12, 0, 0);
+        endShape(CLOSE);
+        // Inner shine
+        noStroke();
+        fill(255, 180, 200, 180);
+        ellipse(-4, -2, 8, 5);
         pop();
     }
 }
 
 /** Render current score HUD text. */
 export function drawGameScore() {
-    fill(0);
+    const margin = 20;
+    const label = 'Score: ' + state.gameScore;
     textSize(26);
-    text("Score: " + state.gameScore, state.cameraPosX + 20, 70);
+    const textW = textWidth(label);
+    const boxPaddingX = 14;
+    const boxPaddingY = 10;
+    const xRight = state.cameraPosX + CANVAS_WIDTH - margin;
+    const boxX = xRight - textW - boxPaddingX * 2;
+    const boxY = 20;
+    // Background badge
+    noStroke();
+    fill(0, 0, 0, 120);
+    rect(boxX + 3, boxY + 3, textW + boxPaddingX * 2, 40, 10); // drop shadow
+    fill(255, 230, 120, 230);
+    stroke(0);
+    strokeWeight(2);
+    rect(boxX, boxY, textW + boxPaddingX * 2, 40, 10);
+    // Text
+    fill(40);
+    noStroke();
+    textAlign(LEFT, CENTER);
+    text(label, boxX + boxPaddingX, boxY + 20);
 }
 
 /** Draw pole and test for completion. */
