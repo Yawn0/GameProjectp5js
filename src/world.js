@@ -63,6 +63,16 @@ export function drawCanyon(canyon, floorPos_y) {
     vertex(canyon.x_pos + 40 + canyon.width, floorPos_y + 30);
     vertex(canyon.x_pos + canyon.width, floorPos_y);
     endShape();
+    // Debug: show canyon width value (centered)
+    push();
+    noStroke();
+    fill(255, 255, 0);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    const centerX = canyon.x_pos + canyon.width / 2;
+    const textY = floorPos_y + 60; // roughly upper area of canyon
+    text(int(canyon.width), centerX, textY);
+    pop();
 }
 
 /** Render coin if not yet collected. */

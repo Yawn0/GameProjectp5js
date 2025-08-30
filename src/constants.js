@@ -4,6 +4,8 @@
 // Canvas + physics
 export const CANVAS_WIDTH = 1024;
 export const CANVAS_HEIGHT = 576;
+// World extends beyond visible canvas (50% larger)
+export const WORLD_WIDTH = CANVAS_WIDTH * 1.5;
 export const FLOOR_HEIGHT_RATIO = 3 / 4;
 export const JUMP_HEIGHT = 100;
 export const GRAVITY_SPEED = 3; // Blobby falls at this speed

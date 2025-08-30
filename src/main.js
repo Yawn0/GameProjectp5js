@@ -1,123 +1,115 @@
 /* Main entry module: orchestrates p5 lifecycle using imported modules + shared state */
-import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, state } from './constants.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, WORLD_WIDTH, state } from './constants.js';
 import { factory, Collectible, Canyon, Platform } from './entities.js';
 import { drawGround, drawScenery, drawCollectible } from './world.js';
 import { drawCharacter, checkPlayerDie, drawLives, drawGameScore, drawFinishLine, drawGameOver, drawGameWin, checkCollectable } from './gameplay.js';
-
-// Expose key handlers to p5 by re-exporting (p5 calls global functions); import inside to avoid side-effects
 import { keyPressed as gameplayKeyPressed, keyReleased as gameplayKeyReleased } from './gameplay.js';
+
 export function keyPressed() { gameplayKeyPressed(); }
 export function keyReleased() { gameplayKeyReleased(); }
 
-// Dynamic level content generation with constraints:
-// 1. Canyons cannot spawn under Blobby's start position.
-// 2. Canyons cannot overlap each other.
-// 3. Canyons must be at least MIN_CANYON_GAP px apart (edge-to-edge).
-// 4. Canyons cannot cover (be under) a collectible.
-function generateLevelContent({ numCollectibles = 4, numCanyons = 2 } = {}) {
+// Procedural level generation (canyons, platforms, collectibles)
+function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX = WORLD_WIDTH - 150 } = {}) {
     state.collectables = [];
     state.canyons = [];
     state.platforms = [];
 
-    // --- Collectibles (placed first so canyons avoid them) ---
-    const playerStartX = width / 2; // spawn
-    const SAFE_RADIUS = 150; // no hazards or collectibles inside this horizontal radius
+    const playerStartX = CANVAS_WIDTH / 2; // starting x
+    const SAFE_RADIUS = 150;
     const safeLeft = playerStartX - SAFE_RADIUS;
     const safeRight = playerStartX + SAFE_RADIUS;
 
-    // We'll spawn collectibles later (after platforms) so some can appear over platforms.
-
-    // --- Canyons with constraints ---
-    const MIN_CANYON_GAP = 100; // requirement #3
+    // Canyons
+    const MIN_CANYON_GAP = 100;
     const MIN_CANYON_WIDTH = 60;
     const MAX_CANYON_WIDTH = 140;
-    // playerStartX already defined above
-
     let attempts = 0;
-    const MAX_ATTEMPTS = 500; // safety to avoid infinite loops
+    const MAX_ATTEMPTS = 800;
+    const FLAG_SAFE_MARGIN = 120; // extra horizontal space kept clear around flag pole
     while (state.canyons.length < numCanyons && attempts < MAX_ATTEMPTS) {
         attempts++;
         const canyonWidth = random(MIN_CANYON_WIDTH, MAX_CANYON_WIDTH);
-        const x = random(0, width - canyonWidth);
+        const x = random(0, WORLD_WIDTH - canyonWidth);
         const left = x;
         const right = x + canyonWidth;
-
-    // (1 + safe zone) Skip if canyon overlaps ANY part of safe zone around player spawn
-    if (!(right < safeLeft || left > safeRight)) continue;
-
-        // (4) Skip if any collectible lies horizontally above this canyon
-        let blockedByCollectible = false;
-        for (const col of state.collectables) {
-            if (col.x_pos >= left && col.x_pos <= right) { blockedByCollectible = true; break; }
-        }
-        if (blockedByCollectible) continue;
-
-        // (2 & 3) Check against existing canyons for overlap or insufficient gap
+        // Avoid safe zone
+        if (!(right < safeLeft || left > safeRight)) continue;
+        // Avoid end-game flag pole area (no canyon under/near flag pole). Account for draw overhang (-20, +40) plus margin.
+        const canyonDrawLeft = left - 20;
+        const canyonDrawRight = right + 40;
+        const flagMin = flagPoleX - FLAG_SAFE_MARGIN;
+        const flagMax = flagPoleX + FLAG_SAFE_MARGIN;
+        const overlapsFlagRegion = !(canyonDrawRight < flagMin || canyonDrawLeft > flagMax);
+        if (overlapsFlagRegion) continue;
+        // Check spacing vs existing
         let invalid = false;
         for (const existing of state.canyons) {
             const eLeft = existing.x_pos;
             const eRight = existing.x_pos + existing.width;
-            const tooClose = !(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left); // if neither side satisfies gap
+            const tooClose = !(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left);
             if (tooClose) { invalid = true; break; }
         }
         if (invalid) continue;
-
         state.canyons.push(new Canyon(x, canyonWidth));
     }
 
-    // --- Platforms ---
-    // First layer: y = floor - 60, must cover each canyon wider than 60px at least partially
+    // Platforms over wide canyons first layer (only for canyons >= 90px)
     const firstLayerY = state.floorPosY - 60;
-    const secondLayerY = firstLayerY - 50; // second layer 50px above first
-
+    const secondLayerY = firstLayerY - 50;
     for (const can of state.canyons) {
-        if (can.width > 60) {
-            // Create a platform spanning the canyon with a little margin
+        if (can.width >= 90) {
             const margin = 20;
             const pX = max(0, can.x_pos - margin);
-            const pWidth = min(width - pX, can.width + margin * 2);
+            const pWidth = min(WORLD_WIDTH - pX, can.width + margin * 2);
             state.platforms.push(new Platform(pX, firstLayerY, pWidth, 12, 0));
         }
     }
 
-    // Additional random platforms (first and second layers)
-    const EXTRA_PLATFORMS = 3;
+    // Extra random platforms
+    const EXTRA_PLATFORMS = 5;
     let platAttempts = 0;
-    while (state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c=>c.width>60).length && platAttempts < 200) {
+    while (platAttempts < 400 && state.platforms.length < EXTRA_PLATFORMS + state.canyons.filter(c => c.width >= 90).length) {
         platAttempts++;
-        const level = random() < 0.5 ? 0 : 1; // choose layer
+        const level = random() < 0.5 ? 0 : 1;
         const y = level === 0 ? firstLayerY : secondLayerY;
-        const w = random(80, 160);
-        const x = random(0, width - w);
-        // Avoid safe zone
-        if (!(x + w < safeLeft || x > safeRight)) continue;
-        // Avoid heavy overlap with existing platforms on same layer
+        const w = random(80, 180);
+        const x = random(0, WORLD_WIDTH - w);
+        if (!(x + w < safeLeft || x > safeRight)) continue; // avoid safe zone
+    // Disallow platforms over canyons < 90px on first layer
+        if (level === 0) {
+            let overSmall = false;
+            for (const can of state.canyons) {
+        if (can.width < 90) {
+                    const cLeft = can.x_pos;
+                    const cRight = can.x_pos + can.width;
+                    if (x < cRight && x + w > cLeft) { overSmall = true; break; }
+                }
+            }
+            if (overSmall) continue;
+        }
         let overlaps = false;
         for (const p of state.platforms) {
-            if (p.level === level) {
-                if (x < p.x_pos + p.width + 40 && x + w > p.x_pos - 40) { overlaps = true; break; }
-            }
+            if (p.level === level && x < p.x_pos + p.width + 40 && x + w > p.x_pos - 40) { overlaps = true; break; }
         }
         if (overlaps) continue;
         state.platforms.push(new Platform(x, y, w, 12, level));
     }
 
-    // --- Collectibles (ground + platform) ---
-    // One collectible per platform (optional) + some on ground
+    // Collectibles on platforms (max one per platform, 60% chance)
     for (const p of state.platforms) {
-        if (random() < 0.6) { // 60% chance to place collectible on platform
-            const x = random(p.x_pos + 20, p.x_pos + p.width - 20);
-            state.collectables.push(new Collectible(x, p.y_pos));
+        if (random() < 0.6) {
+            const cx = random(p.x_pos + 20, p.x_pos + p.width - 20);
+            state.collectables.push(new Collectible(cx, p.y_pos));
         }
     }
-    // Ground collectibles to reach target numCollectibles
+
+    // Ground collectibles (avoid canyons & safe zone)
     let groundToPlace = numCollectibles;
     let groundAttempts = 0;
-    while (groundToPlace > 0 && groundAttempts < 200) {
+    while (groundToPlace > 0 && groundAttempts < 400) {
         groundAttempts++;
-        const x = random(width);
+        const x = random(WORLD_WIDTH);
         if (x >= safeLeft && x <= safeRight) continue;
-        // Avoid spawning over canyons (so player can stand to collect) unless platform above
         let overCanyon = false;
         for (const can of state.canyons) {
             if (x > can.x_pos && x < can.x_pos + can.width) { overCanyon = true; break; }
@@ -128,32 +120,33 @@ function generateLevelContent({ numCollectibles = 4, numCanyons = 2 } = {}) {
     }
 }
 
+function generateBackdrop() {
+    // Trees
+    state.treesX = [];
+    const treeSpacing = 250;
+    for (let x = 85; x < WORLD_WIDTH; x += treeSpacing) { state.treesX.push(x + random(-40, 40)); }
+    // Clouds seed
+    state.cloudsCoordinates = [];
+    const cloudCount = 12;
+    for (let i = 0; i < cloudCount; i++) { state.cloudsCoordinates.push({ x_pos: random(WORLD_WIDTH), y_pos: random(70, 130) }); }
+    state.clouds = factory.clouds(state.cloudsCoordinates);
+    // Mountains
+    state.mountains = [];
+    const mountainCount = 8;
+    for (let i = 0; i < mountainCount; i++) { state.mountains.push({ x_pos: random(WORLD_WIDTH), width: random(0.6, 1.3) }); }
+}
+
 function startGame() {
     state.lives = 3;
     state.cameraPosX = 0;
-    state.gameChar = factory.gameChar(state.floorPosY);
     state.gameScore = 0;
-    generateLevelContent({ numCollectibles: 4, numCanyons: 2 });
-    state.treesX = [85, 300, 450, 700, 850];
-    state.cloudsCoordinates = [
-        { x_pos: 100, y_pos: 100 },
-        { x_pos: 200, y_pos: 80 },
-        { x_pos: 500, y_pos: 120 },
-        { x_pos: 600, y_pos: 90 },
-        { x_pos: 800, y_pos: 100 },
-        { x_pos: 1000, y_pos: 110 }
-    ];
-    state.clouds = factory.clouds(state.cloudsCoordinates);
-    state.mountains = [
-        { x_pos: 0, width: 1 },
-        { x_pos: 600, width: 1.1 },
-        { x_pos: 450, width: 1.2 },
-        { x_pos: 300, width: 0.6 }
-    ];
-    state.flagPole = factory.flagPole(1300, state.floorPosY);
+    state.gameChar = factory.gameChar(state.floorPosY);
+    generateBackdrop();
+    const flagPoleX = WORLD_WIDTH - 150;
+    generateLevelContent({ flagPoleX });
+    state.flagPole = factory.flagPole(flagPoleX, state.floorPosY);
 }
 
-// p5.js lifecycle hooks (declared so p5 can call them; p5 must load first in HTML)
 window.setup = function setup() {
     soundFormats('mp3', 'wav');
     state.sound = {
@@ -163,11 +156,7 @@ window.setup = function setup() {
         DEATH: loadSound('assets/death.wav'),
         WIN: loadSound('assets/win.wav')
     };
-    state.sound.JUMP.setVolume(state.sound.baseVolume);
-    state.sound.COLLECT.setVolume(state.sound.baseVolume);
-    state.sound.DEATH.setVolume(state.sound.baseVolume);
-    state.sound.WIN.setVolume(state.sound.baseVolume);
-
+    for (const k of ['JUMP','COLLECT','DEATH','WIN']) state.sound[k].setVolume(state.sound.baseVolume);
     createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     state.floorPosY = height * FLOOR_HEIGHT_RATIO;
     startGame();
@@ -175,9 +164,12 @@ window.setup = function setup() {
 
 window.draw = function draw() {
     const g = state.gameChar;
-    state.cameraPosX += g.isLeft ? -BLOBBY.SPEED : (g.isRight ? BLOBBY.SPEED : 0);
+    // Move player first (handled in drawCharacter) then sync camera to keep player near center
     background(100, 155, 255);
+    // Simple camera follow
+    state.cameraPosX = constrain(g.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
     drawGround();
+    push();
     translate(-state.cameraPosX, 0);
     drawScenery();
     checkPlayerDie();
@@ -193,8 +185,8 @@ window.draw = function draw() {
     drawFinishLine();
     if (g.isDead) { drawGameOver(); }
     if (state.flagPole.isReached) { drawGameWin(); state.flagPole.isReached = false; }
+    pop();
 };
 
-// Forward key events since p5 expects global functions (already exported for completeness)
 window.keyPressed = keyPressed;
 window.keyReleased = keyReleased;

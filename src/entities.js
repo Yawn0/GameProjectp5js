@@ -1,5 +1,6 @@
 /* Lightweight entity classes + simple factory helpers (ES module) */
 import { generateClouds } from './world.js';
+import { WORLD_WIDTH } from './constants.js';
 
 // Player avatar state container
 export class GameCharacter {
@@ -62,8 +63,8 @@ export class FlagPole {
 
 // Factories mimic former literal object creation; randomness preserved
 export const factory = {
-    collectible: (y) => new Collectible(random(width), y),
-    canyon: () => new Canyon(random(width)),
+    collectible: (y) => new Collectible(random(WORLD_WIDTH), y),
+    canyon: () => new Canyon(random(WORLD_WIDTH)),
     clouds: (coords) => generateClouds(coords), // relies on world.js exported fn
     platform: (x, y, w, h, level) => new Platform(x, y, w, h, level),
     flagPole: (x, y) => new FlagPole(x, y),
