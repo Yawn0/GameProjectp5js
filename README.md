@@ -76,6 +76,11 @@ Start Screen & Music:
 Wind & Parallax:
 - A noise‑driven `windValue` animates scenery sway (trees, flowers, grass) + subtle cloud bobbing.
 - Mountains & hills apply low parallax factors for depth; clouds wrap horizontally relative to camera for continuous sky.
+ - Three tree layers for depth:
+   - Layer 3 (far): sparse, smallest scale, slow parallax (≈0.06), drawn behind mountains & clouds.
+   - Layer 2 (mid): moderate count, medium scale, parallax (≈0.10), in front of mountains, behind foreground.
+   - Layer 1 (foreground): dense, full detail, no parallax (locked to ground).
+   Each distant tree stores a per‑tree `scale` controlling height & sway (reduced sway at distance). X offset = `cameraPosX * factor`.
 
 Particles:
 - Win: initial celebratory burst + periodic dribble effect until end screen.
@@ -93,7 +98,7 @@ HUD:
 Procedural Generation Highlights:
 - Canyons: rejection sampling with minimum gap + flag safety margin.
 - Platforms: deterministic bridging first; extras & secondary layer respect spacing / reach invariants.
-- Trees: soft clustering via probabilistic rejection (hard & soft radius) yields natural distribution.
+ - Trees: foreground layer uses soft clustering with hard/soft radii; mid & far layers generated separately at fractional counts (e.g. ~35% & ~18% of foreground) with wider spacing + per‑tree scale.
 - Decoration (rocks, flowers, grass): density scales with world width using capped attempt loops to avoid infinite retries.
 - Worms: random ground spawn excluding safe zones & canyon spans; parameter randomization for movement variety.
 - Collectibles: chance on platforms + limited ground collectibles pre‑flag to encourage forward motion.

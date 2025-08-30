@@ -76,21 +76,60 @@ export function drawMountain(mountain, floorPos_y, camX) {
     triangle(baseX + (295 * mountain.width), 240, baseX + (310 * mountain.width), 210, baseX + (325 * mountain.width), 240);
 }
 
-/** Stylized layered pine tree. */
+/** Base tree drawing (foreground layer, full size, no parallax). */
 export function drawTree(tree, treePos_y) {
-    const x = tree.x;
-    const sway = state.windValue * 8; // increased horizontal sway
-    const trunkHeight = 130; // shortened from 150 to keep base hidden when swaying
-    fill(140, 70, 20);
-    rect(x + sway * 0.2, treePos_y, 40, -trunkHeight);
-    // Adjust foliage up slightly due to shorter trunk
-    const baseY = treePos_y - (150 - trunkHeight);
-    fill(100, 160, 35);
-    triangle(x - 40 + sway, baseY - 60, x + 20 + sway, baseY - 120, x + 80 + sway, baseY - 60);
-    fill(100, 170, 35);
-    triangle(x - 30 + sway * 1.1, baseY - 95, x + 20 + sway * 1.1, baseY - 150, x + 70 + sway * 1.1, baseY - 95);
-    fill(100, 180, 35);
-    triangle(x - 20 + sway * 1.2, baseY - 125, x + 20 + sway * 1.2, baseY - 180, x + 60 + sway * 1.2, baseY - 125);
+    drawParallaxTree(tree.x, treePos_y, 1, 0, true);
+}
+
+/** Parallax tree helper.
+ * @param {number} x base world x
+ * @param {number} groundY floor Y reference
+ * @param {number} scale visual scale (1 = normal foreground size)
+ * @param {number} parallaxFactor horizontal parallax factor (0 = lock to world, like foreground)
+ * @param {boolean} full detail foliage (foreground) or simplified (mid/far)
+ */
+function drawParallaxTree(x, groundY, scale, parallaxFactor, full = false) {
+    const camX = state.cameraPosX;
+    const px = x + camX * parallaxFactor; // simulate depth: smaller factor => slower horizontal movement
+    const sway = state.windValue * 8 * scale * (full ? 1 : 0.5); // reduce sway on distant layers
+    const trunkWidth = 40 * scale;
+    const trunkHeight = 130 * scale * (full ? 1 : 0.8);
+    fill(140, 70, 20, full ? 255 : 220);
+    rect(px + sway * 0.15, groundY, trunkWidth, -trunkHeight);
+    // Foreground trees keep original layering formula. For distant layers we drop foliage so trunk top touches foliage base.
+    let baseY = groundY - (150 * scale - trunkHeight);
+    if (!full) {
+        // Ensure first (bottom) simplified foliage triangle base aligns with trunk top.
+        // First simplified triangle bottom y = baseY - 60*scale - 10*scale (topOffset used below = 10*scale).
+        // Set that equal to trunk top (groundY - trunkHeight): solve for baseY.
+        // baseY = groundY - trunkHeight + 70*scale.
+        baseY = groundY - trunkHeight + 70 * scale;
+    }
+    // Foliage layers (simplified for distance)
+    function tri(off, topOffset, wScale, hOffset, swayMul, col) {
+        fill(col[0], col[1], col[2], full ? 255 : 230);
+        triangle(
+            px - (40 * scale * wScale) + sway * swayMul + off,
+            baseY - (60 * scale) - topOffset,
+            px + (20 * scale) + sway * swayMul + off,
+            baseY - (120 * scale) - hOffset,
+            px + (80 * scale * wScale) + sway * swayMul + off,
+            baseY - (60 * scale) - topOffset
+        );
+    }
+    // Color gradient shifts slightly with scale to create depth desaturation
+    const baseCol = [100, 160, 35];
+    const midCol = [100, 170, 35];
+    const topCol = [100, 180, 35];
+    if (full) {
+        tri(0, 0, 1, 0, 1.0, baseCol);
+        tri(0, 35 * scale, 0.9, 30 * scale, 1.1, midCol);
+        tri(0, 65 * scale, 0.8, 60 * scale, 1.2, topCol);
+    } else {
+        // Fewer layers for distant trees
+        tri(0, 10 * scale, 0.9, 20 * scale, 0.8, baseCol);
+        tri(0, 45 * scale, 0.75, 50 * scale, 0.9, midCol);
+    }
 }
 
 /** Jagged canyon polygon hazard. */
@@ -230,21 +269,26 @@ export function drawWorm(worm) {
     const amplitude = 2.2;          // vertical wave amplitude (small for subtle motion)
     const segmentSpacing = 5;       // horizontal distance between segment centers
     noStroke();
+    // Bright, high-contrast palette: warm gradient (head = vivid yellow, tail = deep orange) + thin outline.
+    // Improves readability against green ground & brown canyons.
     for (let s = 0; s < worm.segmentCount; s++) {
-        // Offset segment horizontally opposite movement direction so body trails behind head.
-        const segX = worm.x - worm.dir * s * segmentSpacing;
-        // Phase offset per segment (s * 0.6) shifts sine so wave ripples down body.
-        const wave = sin(worm.phase - s * 0.6) * amplitude;
-        // Apply slight vertical modulation (scaled down to keep worm hugging ground).
+        const segX = worm.x - worm.dir * s * segmentSpacing;      // trail positioning
+        const wave = sin(worm.phase - s * 0.6) * amplitude;       // body undulation
         const segY = worm.y + wave * 0.15;
-        // Progressive lightening for a simple depth / highlight illusion.
-        const shade = 180 + s * 8;
-        fill(shade, 100, 60);
-        ellipse(segX, segY, 7, 5);
+        const t = s / max(1, (worm.segmentCount - 1));            // 0 (head) -> 1 (tail)
+        // Gradient: head bright yellow -> tail rich orange-red
+        const r = lerp(255, 255, t);      // keep red maxed
+        const g = lerp(230, 90, t);       // fade green for warmer tail
+        const b = lerp(40, 10, t);        // slight darkening in blue channel
+        stroke(20, 10, 0, 200);
+        strokeWeight(1);
+        fill(r, g, b);
+        ellipse(segX, segY, 8, 6);       // slightly larger for visibility
     }
     // Head details
+    noStroke();
     fill(0);
-    ellipse(worm.x + worm.dir * 2, worm.y - 1, 2, 2);
+    ellipse(worm.x + worm.dir * 2, worm.y - 1, 2.5, 2.5); // larger eye for clarity
 }
 
 /** Brief splash effect */
@@ -284,22 +328,34 @@ export function drawSplash(s) {
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
     // Ordered back-to-front to achieve natural layering.
-    // 1. Distant background silhouettes
+    // 1. Distant background silhouettes (hills, far parallax trees layer 3)
     for (let i = 0; i < state.hills.length; i++) drawHill(state.hills[i]);
+    // Far trees (layer 3) behind clouds & mountains for depth
+    if (state.trees3) {
+        for (let i = 0; i < state.trees3.length; i++) {
+            const t = state.trees3[i];
+            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false); // slowest parallax
+        }
+    }
     // 2. Atmospheric clouds (parallax + wrap)
     for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
     // 3. Mountains (slight parallax)
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
-    // 4. Mid-ground trees and static props
-    for (let i = 0; i < state.trees.length; i++) {
-        drawTree(state.trees[i], state.floorPosY);
+    // 4. Mid-ground parallax trees layer 2 (between mountains and foreground layer 1)
+    if (state.trees2) {
+        for (let i = 0; i < state.trees2.length; i++) {
+            const t = state.trees2[i];
+            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false); // medium parallax (mountains use 0.1 too; we could slightly adjust)
+        }
     }
+    // 5. Foreground trees layer 1 (no parallax shift, original dense set)
+    for (let i = 0; i < state.trees.length; i++) drawTree(state.trees[i], state.floorPosY);
     for (let i = 0; i < state.rocks.length; i++) drawRock(state.rocks[i]);
     for (let i = 0; i < state.flowers.length; i++) drawFlower(state.flowers[i]);
     for (let i = 0; i < state.grassTufts.length; i++) drawGrassTuft(state.grassTufts[i]);
-    // 5. Ground hazards
+    // 6. Ground hazards
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
-    // 6. Interactive platforms (above terrain)
+    // 7. Interactive platforms (above terrain)
     for (let i = 0; i < state.platforms.length; i++) {
         const platform = state.platforms[i];
         stroke(120, 100, 20, 120);
@@ -307,6 +363,6 @@ export function drawScenery() {
         fill(230, 210, 40);
         rect(platform.x_pos, platform.y_pos, platform.width, platform.height, 3);
     }
-    // 7. Critters / small animation details
+    // 8. Critters / small animation details
     for (let i = 0; i < state.worms.length; i++) drawWorm(state.worms[i]);
 }

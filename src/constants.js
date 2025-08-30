@@ -47,6 +47,8 @@ export const state = {
     gameScore: 0,
     // Decorative & interactive collections
     trees: [],       // tree objects (was treesX holding raw x positions)
+    trees2: [],      // mid-layer parallax trees
+    trees3: [],      // far-layer parallax trees
     cloudsCoordinates: [],
     clouds: [],
     mountains: [],

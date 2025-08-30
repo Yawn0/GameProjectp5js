@@ -7,7 +7,7 @@ Deep‑dive into systems, algorithms, and extension points.
 - Scalar: `cameraPosX`, `windPhase`, `windValue`, `gameScore`, `lives`, `startScreenFade`.
 - Flags: `showStartScreen`, `musicEnabled`.
 - References: `gameChar`, `flagPole`, `sound` (sound buffers), `_musicBtn` (HUD hitbox cache).
-- Collections: `canyons`, `platforms`, `collectables`, `trees`, `rocks`, `flowers`, `grassTufts`, `worms`, `splashes`, `particles`, `clouds`, `mountains`, `hills`.
+ - Collections: `canyons`, `platforms`, `collectables`, `trees` (fg), `trees2` (mid), `trees3` (far), `rocks`, `flowers`, `grassTufts`, `worms`, `splashes`, `particles`, `clouds`, `mountains`, `hills`.
 - Win / Lose staging: `winFrame`, `loseFrame` (frame indices stamping timeline events).
 
 Rationale: a single mutable bag simplifies debug (inspect in console) and avoids circular imports.
@@ -25,7 +25,8 @@ Order matters to enforce invariants:
    - Reject if unreachable (`nearestFirst.dist > MAX_REACH_HORIZONTAL`).
    - Reject if overlaps any existing platform horizontally (strict non-overlap -> cleaner silhouettes).
 6. COLLECTIBLES: probabilistic (25%) on platforms + limited ground ones (avoid canyons + safe zone) before flag.
-7. TREES: probabilistic soft clustering; two-tier rejection (hard radius < 0.5*gap, soft radius with probability).
+7. TREES (Layer 1 foreground): probabilistic soft clustering; two-tier rejection (hard radius < 0.5*gap, soft radius with probability) to create clumps without uniform spacing.
+   Mid (Layer 2) & Far (Layer 3) Trees: generated afterward using fractional target counts (e.g. ~0.35 & ~0.18 of foreground total). Each stores `{ x, scale }` (scale adjusts trunk & canopy size and further damps wind sway). Wider spacing & simpler acceptance (no soft clustering) keeps distant silhouettes readable.
 8. ROCKS / FLOWERS / GRASS: simple spacing & exclusion zones. Attempt limits scale with target count.
 9. WORMS: ground critters (avoid canyons, safe zone) with randomized per‑worm parameters.
 
@@ -75,7 +76,7 @@ Optimization: particle arrays shrink in-place (reverse iteration) avoiding churn
 
 ## 9. Wind System
 `windPhase` evolves with small delta. Sample either `noise()` (if present) or fallback sine. Mapped to [-1,1] then smoothed via `lerp` into `windValue`.
-Consumers (trees, flowers, grass, clouds) multiply by differing scalars for varied movement amplitude.
+Consumers (trees, flowers, grass, clouds) multiply by differing scalars for varied movement amplitude. Mid & far tree layers additionally damp sway (e.g. *0.5 or scale‑weighted) to emphasize depth. Parallax X offset applied during draw: `x - cameraPosX * layerFactor` (layerFactor 0 for foreground, ~0.10 mid, ~0.06 far).
 
 ## 10. Camera
 `cameraPosX = clamp(player.x - canvasW/2, 0, WORLD_WIDTH - canvasW)` except on start screen (locked to 0 to avoid pre‑scroll reveal).

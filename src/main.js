@@ -27,6 +27,8 @@ function generateLevelContent({
     state.flowers = [];
     state.grassTufts = [];
     state.trees = [];
+    state.trees2 = [];
+    state.trees3 = [];
     state.worms = [];
 
     const playerStartX = CANVAS_WIDTH / 2; // starting x
@@ -186,7 +188,7 @@ function generateLevelContent({
         groundToPlace--;
     }
 
-    // Trees (part of dynamic content) - dense with soft clustering
+    // Trees (layer 1 foreground, dense) - soft clustering
     const treeMinGap = 85;            // base minimum distance
     const treeFlagSafe = 120;         // horizontal exclusion radius near flag
 
@@ -232,6 +234,36 @@ function generateLevelContent({
         state.trees.push(factory.tree(tx));
     }
     state.trees.sort((a, b) => a.x - b.x);
+
+    // Layer 2 trees (mid distance): fewer & smaller, simple random spacing (reuse safe/flag rules)
+    const layer2Target = floor(treeCountTarget * 0.35);
+    let t2Attempts = 0;
+    while (state.trees2.length < layer2Target && t2Attempts < layer2Target * 40) {
+        t2Attempts++;
+        const tx = random(WORLD_WIDTH);
+        if (tx > safeLeft - 60 && tx < safeRight + 60) continue; // extra gap near spawn
+        if (abs(tx - flagPoleX) < treeFlagSafe + 40) continue;
+        let near = false;
+        for (const existing of state.trees2) { if (abs(existing.x - tx) < 120) { near = true; break; } }
+        if (near) continue;
+        state.trees2.push({ x: tx, scale: random(0.55, 0.75) });
+    }
+    state.trees2.sort((a, b) => a.x - b.x);
+
+    // Layer 3 trees (furthest): rare & tiny silhouettes
+    const layer3Target = floor(treeCountTarget * 0.18);
+    let t3Attempts = 0;
+    while (state.trees3.length < layer3Target && t3Attempts < layer3Target * 50) {
+        t3Attempts++;
+        const tx = random(WORLD_WIDTH);
+        if (tx > safeLeft - 80 && tx < safeRight + 80) continue;
+        if (abs(tx - flagPoleX) < treeFlagSafe + 60) continue;
+        let near = false;
+        for (const existing of state.trees3) { if (abs(existing.x - tx) < 160) { near = true; break; } }
+        if (near) continue;
+        state.trees3.push({ x: tx, scale: random(0.35, 0.5) });
+    }
+    state.trees3.sort((a, b) => a.x - b.x);
 
     // Scatter rocks (avoid canyons & safe zone)
     const rockTarget = floor(50 * worldScale);
