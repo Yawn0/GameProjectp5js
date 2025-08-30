@@ -212,7 +212,7 @@ function generateLevelContent({ numCollectibles = 6, numCanyons = 4, flagPoleX =
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
-	state.worms.push({ x: wx, y: state.floorPosY - 6, segmentCount: floor(random(4, 7)), dir: random([-1,1]), speed: random(0.08, 0.15), phase: random(TWO_PI) }); // slower & shorter
+        state.worms.push({ x: wx, y: state.floorPosY - 6, segmentCount: floor(random(4, 7)), dir: random([-1,1]), speed: random(0.08, 0.15), phase: random(TWO_PI) }); 
     }
 }
 
@@ -280,7 +280,7 @@ window.draw = function draw() {
     // Simple camera follow
     state.cameraPosX = constrain(gameCharacter.x - CANVAS_WIDTH / 2, 0, WORLD_WIDTH - CANVAS_WIDTH);
     // Evolve wind each frame (slow noise-based oscillation)
-    state.windPhase += 0.005; // faster evolution
+    state.windPhase += 0.005; 
     // Use Perlin noise if available; fallback to sinusoidal
     const noiseSample = (typeof noise === 'function') ? noise(state.windPhase) : (sin(state.windPhase) * 0.5 + 0.5);
     // Map noise to target wind including gentle gust bias (ease toward edges)

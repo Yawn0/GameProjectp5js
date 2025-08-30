@@ -1,5 +1,4 @@
-/* Core constants and central mutable state (ES module version).
-    Naming & values preserved; state lives in exported object for live updates. */
+/* Core constants and central mutable state */
 
 // Canvas + physics
 export const CANVAS_WIDTH = 1024;
@@ -39,7 +38,7 @@ export const BLOBBY = {
     EYEBROW_STOP: Math.PI * 2 - 0.3
 };
 
-// Mutable game state bucket (single export ensures shared live reference)
+// Mutable game state
 export const state = {
     sound: null,
     floorPosY: 0,

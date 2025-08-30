@@ -31,7 +31,7 @@ export class GameCharacter {
 
 // Coin / pickup token
 export class Collectible {
-    constructor(x, y, size = 32) { // reduced default size
+    constructor(x, y, size = 32) {
         this.x_pos = x;
         this.y_pos = y;
         this.size = size;

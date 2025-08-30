@@ -1,5 +1,5 @@
 /* Gameplay loop helpers: input, physics, scoring, UI (ES module) */
-import { BLOBBY, JUMP_HEIGHT, GRAVITY_SPEED, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state, GRAVITY_ACCEL, JUMP_VELOCITY } from './constants.js';
+import { BLOBBY, PLUMMET_SPEED, CANVAS_WIDTH, CANVAS_HEIGHT, state, GRAVITY_ACCEL, JUMP_VELOCITY } from './constants.js';
 import { blobbyJumpingLeft, blobbyJumpingRight, blobbyWalkingLeft, blobbyWalkingRight, blobbyJumping, blobbyStandingFront } from './character.js';
 
 /** Map raw keyCode to canonical direction key. */
@@ -14,12 +14,11 @@ export function getDirectionalKey(keyCode) {
 /** Handle key down events (movement + jump). */
 export function keyPressed() {
     const gameCharacter = state.gameChar;
-    // Fallback: start background music on first key press if blocked
+    // Start background music if blocked earlier
     if (state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying()) {
         try { state.sound.MUSIC.play(); } catch(e) {}
     }
-    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
-    if (gameCharacter.isPlummeting) { return; }
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null || gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { gameCharacter.isLeft = true; }
     else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = true; }
@@ -39,8 +38,7 @@ export function keyPressed() {
 /** Stop horizontal movement on key up. */
 export function keyReleased() {
     const gameCharacter = state.gameChar;
-    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null) { return; }
-    if (gameCharacter.isPlummeting) { return; }
+    if ((state.flagPole && state.flagPole.isReached) || state.loseFrame !== null || gameCharacter.isPlummeting) { return; }
     const directionKey = getDirectionalKey(keyCode);
     if (directionKey === LEFT_ARROW) { gameCharacter.isLeft = false; }
     else if (directionKey === RIGHT_ARROW) { gameCharacter.isRight = false; }

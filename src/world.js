@@ -216,7 +216,7 @@ export function drawWorm(worm) {
     // Reverse direction at bounds
     if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
     if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
-    const amplitude = 3; // reduced for shorter worms
+    const amplitude = 3; 
     const segmentSpacing = 5;
     noStroke();
     for (let s = 0; s < worm.segmentCount; s++) {
