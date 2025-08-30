@@ -4,7 +4,9 @@
 export const CANVAS_WIDTH = 1024;
 export const CANVAS_HEIGHT = 576;
 // World extends beyond visible canvas
-export const WORLD_WIDTH = CANVAS_WIDTH * 4;
+// World width RANDOMIZED each new game (multiple of canvas width 2..5). Initialized with a default.
+export let WORLD_WIDTH = CANVAS_WIDTH * 4; // overwritten each start
+export function setWorldWidth(w) { WORLD_WIDTH = w; }
 export const FLOOR_HEIGHT_RATIO = 3 / 4;
 export const JUMP_HEIGHT = 100;
 export const GRAVITY_SPEED = 3; // Blobby falls at this speed

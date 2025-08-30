@@ -76,10 +76,10 @@ Start Screen & Music:
 Wind & Parallax:
 - A noise‑driven `windValue` animates scenery sway (trees, flowers, grass) + subtle cloud bobbing.
 - Mountains & hills apply low parallax factors for depth; clouds wrap horizontally relative to camera for continuous sky.
- - Three tree layers for depth:
-   - Layer 3 (far): sparse, smallest scale, slow parallax (≈0.06), drawn behind mountains & clouds.
-   - Layer 2 (mid): moderate count, medium scale, parallax (≈0.10), in front of mountains, behind foreground.
-   - Layer 1 (foreground): dense, full detail, no parallax (locked to ground).
+ - Three tree layers for depth (render order now: hills → clouds → mountains → far trees → mid trees → foreground trees):
+   - Layer 3 (far): sparse, smallest scale, slow parallax (≈0.06), now drawn IN FRONT of clouds & mountains to pop depth.
+   - Layer 2 (mid): moderate count, medium scale, parallax (≈0.10), between far & foreground.
+   - Layer 1 (foreground): dense (thinned), full detail, no parallax.
    Each distant tree stores a per‑tree `scale` controlling height & sway (reduced sway at distance). X offset = `cameraPosX * factor`.
 
 Particles:
@@ -96,11 +96,13 @@ HUD:
 - Drawn after camera translation is popped (true screen space). This prevents input hitbox mismatches (e.g., music toggle reliability fix) and avoids repeated camera offsets.
 
 Procedural Generation Highlights:
+- Dynamic world width: each run picks a width = CANVAS_WIDTH * N where N ∈ [2,5]. All densities scale from resultant width.
 - Canyons: rejection sampling with minimum gap + flag safety margin.
 - Platforms: deterministic bridging first; extras & secondary layer respect spacing / reach invariants.
- - Trees: foreground layer uses soft clustering with hard/soft radii; mid & far layers generated separately at fractional counts (e.g. ~35% & ~18% of foreground) with wider spacing + per‑tree scale.
+- Trees: foreground layer uses soft clustering (reduced baseline density); mid & far layers generated separately at fractional counts (e.g. ~35% & ~18% of foreground) with wider spacing + per‑tree scale. Far layer ordering changed (now in front of mountains/clouds).
 - Decoration (rocks, flowers, grass): density scales with world width using capped attempt loops to avoid infinite retries.
 - Worms: random ground spawn excluding safe zones & canyon spans; parameter randomization for movement variety.
+ - Worms: random ground spawn excluding player spawn, canyon spans, and a finish-flag safe zone (celebration area). Runtime logic prevents worms wandering into the flag’s immediate vicinity.
 - Collectibles: chance on platforms + limited ground collectibles pre‑flag to encourage forward motion.
 
 ## Controls

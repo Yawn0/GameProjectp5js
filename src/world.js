@@ -183,10 +183,10 @@ export function drawRock(rock) {
 export function drawFlower(f) {
     push();
     const sway = state.windValue * 10;
-    translate(f.x + sway * 0.6, state.floorPosY - 4);
+    translate(f.x + sway * 0.6, state.floorPosY);
     stroke(40, 120, 40);
     strokeWeight(2);
-    line(0, 0, sway * 0.3, -f.height);
+    line(0, 0, sway * 0.3, -f.height); // stem grows upward
     noStroke();
     const petalColors = [
         [255, 200, 200], [255, 240, 150], [200, 220, 255], [255, 180, 240]
@@ -262,6 +262,22 @@ export function drawWorm(worm) {
     // Reverse direction at bounds
     if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
     if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
+    // Flag pole safe zone: worms cannot enter a horizontal band around the finish area
+    if (state.flagPole) {
+        const SAFE_HALF = 110; // must be <= spawn exclusion (140) to prevent jitter at edge
+        const leftBound = state.flagPole.x_pos - SAFE_HALF;
+        const rightBound = state.flagPole.x_pos + SAFE_HALF;
+        if (worm.x > leftBound && worm.x < rightBound) {
+            // Push worm to nearest edge & reverse direction to leave area
+            if (worm.dir > 0) {
+                worm.x = leftBound;
+                worm.dir = -1;
+            } else {
+                worm.x = rightBound;
+                worm.dir = 1;
+            }
+        }
+    }
     const amplitude = 2.2;          // vertical wave amplitude (small for subtle motion)
     const segmentSpacing = 5;       // horizontal distance between segment centers
     noStroke();
@@ -323,35 +339,35 @@ export function drawSplash(s) {
 
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
-    // Ordered back-to-front to achieve natural layering.
-    // 1. Distant background silhouettes (hills, far parallax trees layer 3)
+    // Ordered back-to-front to achieve desired layering.
+    // 1. Distant hills
     for (let i = 0; i < state.hills.length; i++) drawHill(state.hills[i]);
-    // Far trees (layer 3) behind clouds & mountains for depth
+    // 2. Clouds (further back)
+    for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
+    // 3. Mountains
+    for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
+    // 4. Far trees (layer 3)
     if (state.trees3) {
         for (let i = 0; i < state.trees3.length; i++) {
             const t = state.trees3[i];
-            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false); // slowest parallax
+            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false);
         }
     }
-    // 2. Clouds (parallax + wrap)
-    for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
-    // 3. Mountains (slight parallax)
-    for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
-    // 4. Mid-ground parallax trees layer 2 (between mountains and foreground layer 1)
+    // 5. Mid-ground parallax trees layer 2
     if (state.trees2) {
         for (let i = 0; i < state.trees2.length; i++) {
             const t = state.trees2[i];
-            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false); // medium parallax (same as mountains)
+            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false);
         }
     }
-    // 5. Foreground trees layer 1 (no parallax shift, original dense set)
+    // 6. Foreground trees layer 1
     for (let i = 0; i < state.trees.length; i++) drawTree(state.trees[i], state.floorPosY);
     for (let i = 0; i < state.rocks.length; i++) drawRock(state.rocks[i]);
     for (let i = 0; i < state.flowers.length; i++) drawFlower(state.flowers[i]);
     for (let i = 0; i < state.grassTufts.length; i++) drawGrassTuft(state.grassTufts[i]);
-    // 6. Ground hazards
+    // 7. Ground hazards
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
-    // 7. Interactive platforms (above terrain)
+    // 8. Interactive platforms (above terrain)
     for (let i = 0; i < state.platforms.length; i++) {
         const platform = state.platforms[i];
         stroke(120, 100, 20, 120);
@@ -359,6 +375,6 @@ export function drawScenery() {
         fill(230, 210, 40);
         rect(platform.x_pos, platform.y_pos, platform.width, platform.height, 3);
     }
-    // 8. Critters / small animation details
+    // 9. Critters / small animation details
     for (let i = 0; i < state.worms.length; i++) drawWorm(state.worms[i]);
 }

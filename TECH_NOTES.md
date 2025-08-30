@@ -16,7 +16,8 @@ Rationale: a single mutable bag simplifies debug (inspect in console) and avoids
 Order matters to enforce invariants:
 1. Clear arrays.
 2. Derive spawn safe zone + flag safety margins.
-3. CANYONS: rejection sampling with spacing + flag exclusion.
+3. WORLD WIDTH: randomly chosen each start: `WORLD_WIDTH = CANVAS_WIDTH * randomInt[2,5]`.
+4. CANYONS: rejection sampling with spacing + flag exclusion.
 4. PLATFORMS Layer 0: mandatory canyon bridges → sparse extras (respect safe/flag + spacing).
 5. PLATFORMS Layer 1: adjacency placement. Constraints:
    - Choose random base L0 platform.
@@ -25,10 +26,12 @@ Order matters to enforce invariants:
    - Reject if unreachable (`nearestFirst.dist > MAX_REACH_HORIZONTAL`).
    - Reject if overlaps any existing platform horizontally (strict non-overlap -> cleaner silhouettes).
 6. COLLECTIBLES: probabilistic (25%) on platforms + limited ground ones (avoid canyons + safe zone) before flag.
-7. TREES (Layer 1 foreground): probabilistic soft clustering; two-tier rejection (hard radius < 0.5*gap, soft radius with probability) to create clumps without uniform spacing.
+7. TREES (Layer 1 foreground): probabilistic soft clustering; density scaled down (higher divisor) for clearer playfield; two-tier rejection (hard radius < 0.5*gap, soft radius with probability) creates organic clumps.
    Mid (Layer 2) & Far (Layer 3) Trees: generated afterward using fractional target counts (e.g. ~0.35 & ~0.18 of foreground total). Each stores `{ x, scale }` (scale adjusts trunk & canopy size and further damps wind sway). Wider spacing & simpler acceptance (no soft clustering) keeps distant silhouettes readable.
+   Layer ordering tweak: far layer (3) now rendered after mountains/clouds so silhouettes sit visually closer.
 8. ROCKS / FLOWERS / GRASS: simple spacing & exclusion zones. Attempt limits scale with target count.
 9. WORMS: ground critters (avoid canyons, safe zone) with randomized per‑worm parameters.
+   Additional exclusion: finish flag safe band both at spawn and during movement (movement code clamps & reverses when entering band) so end-game area remains hazard‑free.
 
 Attempt Counters: each while loop is bounded (e.g. `* 20` multiplier) preventing infinite loops when space saturates.
 
@@ -76,7 +79,7 @@ Optimization: particle arrays shrink in-place (reverse iteration) avoiding churn
 
 ## 9. Wind System
 `windPhase` evolves with small delta. Sample either `noise()` (if present) or fallback sine. Mapped to [-1,1] then smoothed via `lerp` into `windValue`.
-Consumers (trees, flowers, grass, clouds) multiply by differing scalars for varied movement amplitude. Mid & far tree layers additionally damp sway (e.g. *0.5 or scale‑weighted) to emphasize depth. Parallax X offset applied during draw: `x - cameraPosX * layerFactor` (layerFactor 0 for foreground, ~0.10 mid, ~0.06 far).
+Consumers (trees, flowers, grass, clouds) multiply by differing scalars for varied movement amplitude. Mid & far tree layers additionally damp sway (e.g. *0.5 or scale‑weighted) to emphasize depth. Parallax X offset applied during draw: `x - cameraPosX * layerFactor` (layerFactor 0 for foreground, ~0.10 mid, ~0.06 far). Far trees drawn in front of mountains/clouds.
 
 ## 10. Camera
 `cameraPosX = clamp(player.x - canvasW/2, 0, WORLD_WIDTH - canvasW)` except on start screen (locked to 0 to avoid pre‑scroll reveal).

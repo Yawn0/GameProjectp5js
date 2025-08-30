@@ -1,5 +1,5 @@
 /* Main entry module: orchestrates p5 lifecycle using imported modules + shared state */
-import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, WORLD_WIDTH, state } from './constants.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, WORLD_WIDTH, state, setWorldWidth } from './constants.js';
 import { factory, Collectible, Canyon, Platform } from './entities.js';
 import { drawGround, drawScenery, drawCollectible, drawSplash } from './world.js';
 import { drawCharacter, checkPlayerDie, drawFinishLine, checkCollectable, ensureWinParticles } from './gameplay.js';
@@ -344,6 +344,8 @@ function generateLevelContent({
         wormAttempts++;
         const wx = random(WORLD_WIDTH);
         if (wx > safeLeft - 40 && wx < safeRight + 40) continue;
+    // Keep worms away from finish flag area (safe zone)
+    if (abs(wx - flagPoleX) < 140) continue;
         let overCanyonWorm = false;
         for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
         if (overCanyonWorm) continue;
@@ -377,6 +379,9 @@ function generateBackdrop()
 
 function startGame()
 {
+    // Randomize world width each run between 2x and 5x canvas width (inclusive integer multiple)
+    const multiplier = floor(random(2, 6)); // 2..5
+    setWorldWidth(CANVAS_WIDTH * multiplier); // update shared live binding
     state.lives = 3;
     state.cameraPosX = 0;
     state.gameScore = 0;
@@ -465,6 +470,11 @@ window.draw = function draw() {
                 if (state.lives <= 0 && state.loseFrame === null) {
                     gameCharacter.isDead = true;
                     state.loseFrame = frameCount;
+                    // Play LOST sound (final life) and stop music similar to fall death path
+                    if (state.sound && state.sound.LOST) { state.sound.LOST.play(); }
+                    if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying()) {
+                        try { state.sound.MUSIC.stop(); } catch(e) {}
+                    }
                 }
             }
         }
