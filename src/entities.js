@@ -1,4 +1,8 @@
-/* Lightweight entity classes + simple factory helpers (ES module) */
+/* Lightweight entity classes + simple factory helpers (ES module)
+    Each class represents a type of world object with only the data it needs.
+    The exported 'factory' object centralizes construction so the rest of the
+    codebase can stay decoupled from 'new' expressions and future changes to
+    constructors (Factory Pattern). */
 import { generateClouds } from './world.js';
 import { WORLD_WIDTH } from './constants.js';
 
@@ -7,15 +11,15 @@ export class GameCharacter {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-    this.vy = 0; // vertical velocity
+    this.vy = 0;                 // vertical velocity (integrated each frame)
         this.isLeft = false;
         this.isRight = false;
         this.isFalling = false;
         this.isPlummeting = false;
         this.isDead = false;
-    this.dropThroughFrames = 0; // frames remaining to ignore platforms
-    this.plummetSoundPlayed = false; // prevent repeat sound
-    this.walkCycle = 0; // phase accumulator for walking animation
+    this.dropThroughFrames = 0;  // frames remaining to ignore platforms
+    this.plummetSoundPlayed = false; // prevent repeat sound spam
+    this.walkCycle = 0;          // phase accumulator for walking animation
     }
     reset(floorY) {
         this.x = width / 2;
@@ -54,7 +58,7 @@ export class Platform {
         this.y_pos = y; // top surface Y
         this.width = width;
         this.height = height;
-        this.level = level; // 0 = first layer, 1 = second layer, etc.
+    this.level = level; // 0 = first layer, 1 = second layer, etc. (useful for spacing rules)
     }
 }
 
@@ -69,7 +73,8 @@ export class FlagPole {
     }
 }
 
-// Factories mimic former literal object creation; randomness preserved
+// Factories: single responsible point for creating entities / value objects.
+// If a constructor or structure changes we only update here.
 export const factory = {
     collectible: (x, y, size) => new Collectible(x, y, size),
     randomCollectible: (y) => new Collectible(random(WORLD_WIDTH), y),

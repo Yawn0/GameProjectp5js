@@ -2,7 +2,8 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT, FLOOR_HEIGHT_RATIO, BLOBBY, WORLD_WIDTH, state } from './constants.js';
 import { factory, Collectible, Canyon, Platform } from './entities.js';
 import { drawGround, drawScenery, drawCollectible } from './world.js';
-import { drawCharacter, checkPlayerDie, drawLives, drawGameScore, drawFinishLine, drawGameOver, drawGameWin, checkCollectable } from './gameplay.js';
+import { drawCharacter, checkPlayerDie, drawFinishLine, checkCollectable, ensureWinParticles } from './gameplay.js';
+import { drawLives, drawGameScore, drawGameOver, drawGameWin } from './hud.js';
 import { keyPressed as gameplayKeyPressed, keyReleased as gameplayKeyReleased } from './gameplay.js';
 
 export function keyPressed() { gameplayKeyPressed(); }
@@ -293,7 +294,10 @@ window.draw = function draw() {
     drawGameScore();
     drawFinishLine();
     if (gameCharacter.isDead) { drawGameOver(); }
-    if (state.flagPole.isReached || state.winFrame !== null) { drawGameWin(); }
+    if (state.flagPole.isReached || state.winFrame !== null) {
+        ensureWinParticles(); // keep particles updating in world space
+        drawGameWin();
+    }
     pop();
 };
 

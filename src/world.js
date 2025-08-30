@@ -1,4 +1,7 @@
-/* World generation + rendering helpers (ES module) */
+/* World generation + rendering helpers (ES module)
+    Responsible only for drawing world/background & decorative entities.
+    All positioning uses world coordinates; camera translation is applied in main draw loop.
+*/
 import { state, WORLD_WIDTH } from './constants.js';
 
 /** Draw ground strip. */
@@ -13,10 +16,10 @@ export function generateClouds(cloudsCoordinates) {
     const clouds = [];
     for (let i = 0; i < cloudsCoordinates.length; i++) {
         const cloud = cloudsCoordinates[i];
-        const speed = random(0.15, 0.45); // individual cluster speed
-    const light = random(215, 250); // base brightness for entire cluster
-        // Keep cluster cohesion by sharing speed among its ellipses
-    clouds.push({ x: cloud.x_pos, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
+    const speed = random(0.15, 0.45);     // per-cluster horizontal drift speed
+    const light = random(215, 250);       // base brightness for consistent cluster shading
+    // Build 4 ellipses per seed with small random vertical compression for softness
+    clouds.push({ x: cloud.x_pos,      y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
     clouds.push({ x: cloud.x_pos + 40, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 70, speed, light });
     clouds.push({ x: cloud.x_pos + 80, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 60, speed, light });
     clouds.push({ x: cloud.x_pos + 30, y: cloud.y_pos * random(0.5, 0.9), width: 100 * random(0.8, 1.2), height: 80, speed, light });
@@ -180,31 +183,31 @@ export function drawGrassTuft(t) {
 }
 
 /** Render coin if not yet collected. */
-export function drawCollectible(t_collectible) {
-    if (!t_collectible.isFound) {
-        const centerY = t_collectible.y_pos - (t_collectible.size / 2);
+export function drawCollectible(collectible) {
+    if (!collectible.isFound) {
+        const centerY = collectible.y_pos - (collectible.size / 2);
         const pulse = 0.5 + 0.5 * sin(frameCount * 0.15);
         stroke(0);
         strokeWeight(2);
         // Outer glow ring
         noFill();
         stroke(255, 220, 60, 120);
-        ellipse(t_collectible.x_pos, centerY, t_collectible.size * (1.1 + pulse * 0.05));
+        ellipse(collectible.x_pos, centerY, collectible.size * (1.1 + pulse * 0.05));
         // Main coin body
         stroke(0);
         fill(255, 215, 0);
-        ellipse(t_collectible.x_pos, centerY, t_collectible.size);
+        ellipse(collectible.x_pos, centerY, collectible.size);
         // Inner gradient simulation with layered circles
         noStroke();
         fill(255, 235, 140);
-        ellipse(t_collectible.x_pos - 3, centerY - 3, t_collectible.size * 0.7);
+        ellipse(collectible.x_pos - 3, centerY - 3, collectible.size * 0.7);
         fill(255, 255, 255, 180);
-        ellipse(t_collectible.x_pos - 6, centerY - 6, t_collectible.size * 0.35);
-    // Sparkle highlight (static, faint pulse but no spin)
-    const sparklePulse = 0.6 + 0.4 * sin(frameCount * 0.2 + t_collectible.x_pos * 0.05);
-    fill(255,255,255,180 * sparklePulse);
-    noStroke();
-    ellipse(t_collectible.x_pos - t_collectible.size * 0.18, centerY - t_collectible.size * 0.45, t_collectible.size * 0.18, t_collectible.size * 0.30);
+        ellipse(collectible.x_pos - 6, centerY - 6, collectible.size * 0.35);
+        // Sparkle highlight (static, faint pulse but no spin)
+        const sparklePulse = 0.6 + 0.4 * sin(frameCount * 0.2 + collectible.x_pos * 0.05);
+        fill(255,255,255,180 * sparklePulse);
+        noStroke();
+        ellipse(collectible.x_pos - collectible.size * 0.18, centerY - collectible.size * 0.45, collectible.size * 0.18, collectible.size * 0.30);
     }
 }
 
@@ -235,18 +238,21 @@ export function drawWorm(worm) {
 
 /** Batch draw of world backdrop elements. */
 export function drawScenery() {
-    // Background layers
-    // Distant hills (draw behind everything else except sky)
+    // Ordered back-to-front to achieve natural layering.
+    // 1. Distant background silhouettes
     for (let i = 0; i < state.hills.length; i++) drawHill(state.hills[i]);
+    // 2. Atmospheric clouds (parallax + wrap)
     for (let i = 0; i < state.clouds.length; i++) drawCloud(state.clouds[i]);
+    // 3. Mountains (slight parallax)
     for (let i = 0; i < state.mountains.length; i++) drawMountain(state.mountains[i], state.floorPosY, state.cameraPosX);
+    // 4. Mid-ground trees and static props
     for (let i = 0; i < state.treesX.length; i++) drawTree(state.treesX[i], state.floorPosY);
     for (let i = 0; i < state.rocks.length; i++) drawRock(state.rocks[i]);
     for (let i = 0; i < state.flowers.length; i++) drawFlower(state.flowers[i]);
     for (let i = 0; i < state.grassTufts.length; i++) drawGrassTuft(state.grassTufts[i]);
-    // Ground hazards
+    // 5. Ground hazards
     for (let i = 0; i < state.canyons.length; i++) drawCanyon(state.canyons[i], state.floorPosY);
-    // Platforms (above scenery so they are visible)
+    // 6. Interactive platforms (above terrain)
     for (let i = 0; i < state.platforms.length; i++) {
         const platform = state.platforms[i];
         stroke(120, 100, 20, 120);
@@ -254,7 +260,6 @@ export function drawScenery() {
         fill(230, 210, 40);
         rect(platform.x_pos, platform.y_pos, platform.width, platform.height, 3);
     }
-    // Worms (above ground but below collectibles/character)
+    // 7. Critters / small animation details
     for (let i = 0; i < state.worms.length; i++) drawWorm(state.worms[i]);
-
 }
