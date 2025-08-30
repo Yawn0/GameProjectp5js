@@ -198,6 +198,10 @@ export function drawStartScreen()
         'Press any key or click to start'
     ];
     let y = 170 + 28; // push list slightly down after subtitle
-    for (const l of lines) { text(l, marginX, y); y += 32; }
+    for (const line of lines) 
+    { 
+        text(line, marginX, y); 
+        y += 32; 
+    }
     pop();
 }

@@ -6,9 +6,9 @@ export function blobbyStandingFront()
 {
     const gameChar = state.gameChar;
     // Joyful idle wobble while standing
-    const t = frameCount * 0.08; // phase speed
-    const sway = sin(t) * 3; // horizontal offset
-    const lean = sin(t + PI / 2) * 0.08; // small rotation
+    const framePhase = frameCount * 0.08; // phase speed
+    const sway = sin(framePhase) * 3; // horizontal offset
+    const lean = sin(framePhase + PI / 2) * 0.08; // small rotation
     stroke(0);
     fill(BLOBBY.COLORS.FEET);
     const footSway = -sway * 0.25;

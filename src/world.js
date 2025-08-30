@@ -197,51 +197,51 @@ export function drawRock(rock)
 }
 
 /** Tiny flower. */
-export function drawFlower(f)
+export function drawFlower(flower)
 {
     push();
     const sway = state.windValue * 10;
-    translate(f.x + sway * 0.6, state.floorPosY);
+    translate(flower.x + sway * 0.6, state.floorPosY);
     stroke(40, 120, 40);
     strokeWeight(2);
-    line(0, 0, sway * 0.3, -f.height); // stem grows upward
+    line(0, 0, sway * 0.3, -flower.height); // stem grows upward
     noStroke();
     const petalColors = [
         [255, 200, 200], [255, 240, 150], [200, 220, 255], [255, 180, 240]
     ];
-    const pc = petalColors[f.colorIndex % petalColors.length];
+    const pc = petalColors[flower.colorIndex % petalColors.length];
     fill(...pc);
-    const r = f.height * 0.35;
+    const petalRadius = flower.height * 0.35;
     for (let i = 0; i < 5; i++)
     {
-        const ang = (TWO_PI / 5) * i;
-        ellipse(cos(ang) * r, -f.height + sin(ang) * r, r * 1.1, r * 0.9);
+        const angle = (TWO_PI / 5) * i;
+        ellipse(cos(angle) * petalRadius, -flower.height + sin(angle) * petalRadius, petalRadius * 1.1, petalRadius * 0.9);
     }
     fill(255, 215, 0);
-    ellipse(0, -f.height, r * 0.9, r * 0.9);
+    ellipse(0, -flower.height, petalRadius * 0.9, petalRadius * 0.9);
     pop();
 }
 
 /** Small grass tuft. */
-export function drawGrassTuft(t)
+export function drawGrassTuft(tuft)
 {
     push();
     const baseSway = state.windValue * 6;
-    translate(t.x + baseSway * 0.2, state.floorPosY);
+    translate(tuft.x + baseSway * 0.2, state.floorPosY);
     stroke(50, 140, 50);
     strokeWeight(2);
-    if (!t.blades)
+    if (!tuft.blades)
     {
-        t.blades = [];
+        tuft.blades = [];
         for (let i = 0; i < 5; i++)
         {
-            t.blades.push({ ang: map(i, 0, 4, -0.6, 0.6) + random(-0.1, 0.1), len: t.height * random(0.7, 1) });
+            tuft.blades.push({ ang: map(i, 0, 4, -0.6, 0.6) + random(-0.1, 0.1), len: tuft.height * random(0.7, 1) });
         }
     }
-    for (const b of t.blades)
+    for (const blade of tuft.blades)
     {
         const dynamicLean = baseSway * 0.4;
-        line(0, 0, sin(b.ang) * 6 + dynamicLean, -b.len);
+        line(0, 0, sin(blade.ang) * 6 + dynamicLean, -blade.len);
     }
     pop();
 }
@@ -286,8 +286,16 @@ export function drawWorm(worm)
     worm.phase += 0.15;            // Larger = faster wiggle frequency
     worm.x += worm.speed * 0.6 * worm.dir; // 0.6 dampens raw speed so random range stays gentle
     // Reverse direction at bounds
-    if (worm.x < 0) { worm.x = 0; worm.dir = 1; }
-    if (worm.x > WORLD_WIDTH) { worm.x = WORLD_WIDTH; worm.dir = -1; }
+    if (worm.x < 0) 
+    {
+        worm.x = 0;
+        worm.dir = 1;
+    }
+    if (worm.x > WORLD_WIDTH) 
+    {
+        worm.x = WORLD_WIDTH;
+        worm.dir = -1;
+    }
     // Flag pole safe zone: worms cannot enter a horizontal band around the finish area
     if (state.flagPole)
     {
@@ -313,12 +321,12 @@ export function drawWorm(worm)
     noStroke();
     // Bright, high-contrast palette: warm gradient (head = vivid yellow, tail = deep orange) + thin outline.
     // Improves readability against green ground & brown canyons.
-    for (let s = 0; s < worm.segmentCount; s++)
+    for (let segment = 0; segment < worm.segmentCount; segment++)
     {
-        const segX = worm.x - worm.dir * s * segmentSpacing;      // trail positioning
-        const wave = sin(worm.phase - s * 0.6) * amplitude;       // body undulation
+        const segX = worm.x - worm.dir * segment * segmentSpacing;      // trail positioning
+        const wave = sin(worm.phase - segment * 0.6) * amplitude;       // body undulation
         const segY = worm.y + wave * 0.15;
-        const t = s / max(1, (worm.segmentCount - 1));            // 0 (head) -> 1 (tail)
+        const t = segment / max(1, (worm.segmentCount - 1));            // 0 (head) -> 1 (tail)
         // Gradient: head bright yellow -> tail rich orange-red
         const r = lerp(255, 255, t);      // keep red maxed
         const g = lerp(230, 90, t);       // fade green for warmer tail
@@ -335,15 +343,15 @@ export function drawWorm(worm)
 }
 
 /** Brief splash effect */
-export function drawSplash(s)
+export function drawSplash(splash)
 {
     // Lazily initializing particle rays (so factory stays lightweight? maybe?)
-    if (!s.particles)
+    if (!splash.particles)
     {
-        s.particles = [];
+        splash.particles = [];
         for (let i = 0; i < 10; i++)
         {
-            s.particles.push({
+            splash.particles.push({
                 ang: random(TWO_PI),
                 speed: random(1, 3.5),
                 r: 0,
@@ -352,23 +360,23 @@ export function drawSplash(s)
         }
     }
     // Normalized life progress (0 -> birth, 1 -> end)
-    const t = 1 - (s.life / s.maxLife);
-    for (const p of s.particles)
+    const lifeProgress = 1 - (splash.life / splash.maxLife);
+    for (const particle of splash.particles)
     {
-        p.r = lerp(0, p.maxR, t);
-        const px = s.x + cos(p.ang) * p.r;
-        const py = s.y - 4 + sin(p.ang) * p.r * 0.6;
+        particle.r = lerp(0, particle.maxR, lifeProgress);
+        const px = splash.x + cos(particle.ang) * particle.r;
+        const py = splash.y - 4 + sin(particle.ang) * particle.r * 0.6;
         noStroke();
-        fill(255, 200, 120, 200 * (1 - t));
+        fill(255, 200, 120, 200 * (1 - lifeProgress));
         ellipse(px, py, 4, 4);
     }
     // Central expanding ring (ties particles together visually)
     noFill();
-    stroke(255, 220, 150, 180 * (1 - t));
-    strokeWeight(4 - t * 3);
-    const ringR = 8 + t * 18;
-    ellipse(s.x, s.y - 4, ringR * 1.5, ringR);
-    s.life--;
+    stroke(255, 220, 150, 180 * (1 - lifeProgress));
+    strokeWeight(4 - lifeProgress * 3);
+    const ringR = 8 + lifeProgress * 18;
+    ellipse(splash.x, splash.y - 4, ringR * 1.5, ringR);
+    splash.life--;
 }
 
 
@@ -387,8 +395,8 @@ export function drawScenery()
     {
         for (let i = 0; i < state.trees3.length; i++)
         {
-            const t = state.trees3[i];
-            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.06, false);
+            const tree = state.trees3[i];
+            drawParallaxTree(tree.x, state.floorPosY, tree.scale, 0.06, false);
         }
     }
     // 5. Mid-ground parallax trees layer 2
@@ -396,8 +404,8 @@ export function drawScenery()
     {
         for (let i = 0; i < state.trees2.length; i++)
         {
-            const t = state.trees2[i];
-            drawParallaxTree(t.x, state.floorPosY, t.scale, 0.1, false);
+            const tree = state.trees2[i];
+            drawParallaxTree(tree.x, state.floorPosY, tree.scale, 0.1, false);
         }
     }
     // 6. Foreground trees layer 1

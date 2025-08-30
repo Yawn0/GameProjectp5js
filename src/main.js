@@ -63,7 +63,11 @@ function generateLevelContent({
         {
             const eLeft = existing.x_pos;
             const eRight = existing.x_pos + existing.width;
-            if (!(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left)) { tooClose = true; break; }
+            if (!(right + MIN_CANYON_GAP <= eLeft || eRight + MIN_CANYON_GAP <= left)) 
+            {
+                tooClose = true;
+                break;
+            }
         }
         if (tooClose) continue;
         state.canyons.push(factory.canyon(x, width));
@@ -87,7 +91,8 @@ function generateLevelContent({
     const FIRST_LAYER_EXTRA_TARGET = floor((2 * worldScale) + 3);
     const FIRST_LAYER_MIN_GAP = 140;
     let firstExtrasAttempts = 0;
-    while (state.platforms.filter(p => p.level === 0).length < FIRST_LAYER_EXTRA_TARGET + state.canyons.filter(c => c.width >= 90).length && firstExtrasAttempts < 500)
+    while (state.platforms.filter(p => p.level === 0).length < FIRST_LAYER_EXTRA_TARGET + state.canyons.filter(c => c.width >= 90).length
+        && firstExtrasAttempts < 500)
     {
         firstExtrasAttempts++;
         const w = random(90, 170);
@@ -111,11 +116,15 @@ function generateLevelContent({
         if (invalid) continue;
 
         // Spacing from existing first layer platforms
-        for (const p of state.platforms)
+        for (const platform of state.platforms)
         {
-            if (p.level !== 0) continue;
-            const gap = (x + w) < p.x_pos ? p.x_pos - (x + w) : x - (p.x_pos + p.width);
-            if (gap < FIRST_LAYER_MIN_GAP && gap > -FIRST_LAYER_MIN_GAP) { invalid = true; break; }
+            if (platform.level !== 0) continue;
+            const gap = (x + w) < platform.x_pos ? platform.x_pos - (x + w) : x - (platform.x_pos + platform.width);
+            if (gap < FIRST_LAYER_MIN_GAP && gap > -FIRST_LAYER_MIN_GAP) 
+            {
+                invalid = true;
+                break;
+            }
         }
         if (invalid) continue;
 
@@ -154,7 +163,11 @@ function generateLevelContent({
         for (const p of state.platforms)
         {
             const overlap = !(x + w <= p.x_pos || x >= p.x_pos + p.width); // strict non-overlap: touching edges allowed
-            if (overlap) { overlapsAny = true; break; }
+            if (overlap) 
+            {
+                overlapsAny = true;
+                break;
+            }
         }
         if (overlapsAny) continue;
 
@@ -183,7 +196,14 @@ function generateLevelContent({
         const x = random(flagPoleX - 60); // only before flag
         if (x >= safeLeft && x <= safeRight) continue;
         let overCanyon = false;
-        for (const can of state.canyons) { if (x > can.x_pos && x < can.x_pos + can.width) { overCanyon = true; break; } }
+        for (const can of state.canyons) 
+        {
+            if (x > can.x_pos && x < can.x_pos + can.width) 
+            {
+                overCanyon = true;
+                break;
+            }
+        }
         if (overCanyon) continue;
         state.collectables.push(factory.collectible(x, state.floorPosY));
         groundToPlace--;
@@ -210,17 +230,21 @@ function generateLevelContent({
     while (state.trees.length < treeCountTarget && treeAttempts < treeCountTarget * 30)
     {
         treeAttempts++;
-        const tx = random(WORLD_WIDTH);
+        const tree_x = random(WORLD_WIDTH);
 
         // Avoid player safe zone & near flag pole
-        if (tx > safeLeft - 40 && tx < safeRight + 40) continue;
-        if (abs(tx - flagPoleX) < treeFlagSafe) continue;
+        if (tree_x > safeLeft - 40 && tree_x < safeRight + 40) continue;
+        if (abs(tree_x - flagPoleX) < treeFlagSafe) continue;
 
         // Avoid canyons span (with small margin so trunks not over gap)
         let overCanyon = false;
         for (const can of state.canyons)
         {
-            if (tx > can.x_pos - 30 && tx < can.x_pos + can.width + 30) { overCanyon = true; break; }
+            if (tree_x > can.x_pos - 30 && tree_x < can.x_pos + can.width + 30) 
+            {
+                overCanyon = true;
+                break;
+            }
         }
         if (overCanyon) continue;
 
@@ -228,13 +252,21 @@ function generateLevelContent({
         let tooClose = false;
         for (const existingTree of state.trees)
         {
-            const d = abs(existingTree.x - tx);
-            if (d < treeMinGap * 0.5) { tooClose = true; break; }         // hard reject very close
-            if (d < treeMinGap && random() < 0.6) { tooClose = true; break; } // soft reject
+            const d = abs(existingTree.x - tree_x);
+            if (d < treeMinGap * 0.5) 
+            {
+                tooClose = true;
+                break;
+            }         // hard reject very close
+            if (d < treeMinGap && random() < 0.6) 
+            {
+                tooClose = true;
+                break;
+            } // soft reject
         }
         if (tooClose) continue;
 
-        state.trees.push(factory.tree(tx));
+        state.trees.push(factory.tree(tree_x));
     }
     state.trees.sort((a, b) => a.x - b.x);
 
@@ -244,13 +276,20 @@ function generateLevelContent({
     while (state.trees2.length < layer2Target && t2Attempts < layer2Target * 40)
     {
         t2Attempts++;
-        const tx = random(WORLD_WIDTH);
-        if (tx > safeLeft - 60 && tx < safeRight + 60) continue; // extra gap near spawn
-        if (abs(tx - flagPoleX) < treeFlagSafe + 40) continue;
+        const tree_x = random(WORLD_WIDTH);
+        if (tree_x > safeLeft - 60 && tree_x < safeRight + 60) continue; // extra gap near spawn
+        if (abs(tree_x - flagPoleX) < treeFlagSafe + 40) continue;
         let near = false;
-        for (const existing of state.trees2) { if (abs(existing.x - tx) < 120) { near = true; break; } }
+        for (const existing of state.trees2) 
+        {
+            if (abs(existing.x - tree_x) < 120) 
+            {
+                near = true;
+                break;
+            }
+        }
         if (near) continue;
-        state.trees2.push({ x: tx, scale: random(0.55, 0.75) });
+        state.trees2.push({ x: tree_x, scale: random(0.55, 0.75) });
     }
     state.trees2.sort((a, b) => a.x - b.x);
 
@@ -260,13 +299,20 @@ function generateLevelContent({
     while (state.trees3.length < layer3Target && t3Attempts < layer3Target * 50)
     {
         t3Attempts++;
-        const tx = random(WORLD_WIDTH);
-        if (tx > safeLeft - 80 && tx < safeRight + 80) continue;
-        if (abs(tx - flagPoleX) < treeFlagSafe + 60) continue;
+        const tree_x = random(WORLD_WIDTH);
+        if (tree_x > safeLeft - 80 && tree_x < safeRight + 80) continue;
+        if (abs(tree_x - flagPoleX) < treeFlagSafe + 60) continue;
         let near = false;
-        for (const existing of state.trees3) { if (abs(existing.x - tx) < 160) { near = true; break; } }
+        for (const existing of state.trees3) 
+        {
+            if (abs(existing.x - tree_x) < 160) 
+            {
+                near = true;
+                break;
+            }
+        }
         if (near) continue;
-        state.trees3.push({ x: tx, scale: random(0.35, 0.5) });
+        state.trees3.push({ x: tree_x, scale: random(0.35, 0.5) });
     }
     state.trees3.sort((a, b) => a.x - b.x);
 
@@ -277,15 +323,15 @@ function generateLevelContent({
     {
         rockAttempts++;
 
-        const rx = random(WORLD_WIDTH);
+        const rock_x = random(WORLD_WIDTH);
 
-        if (rx > safeLeft - 30 && rx < safeRight + 30) continue;
+        if (rock_x > safeLeft - 30 && rock_x < safeRight + 30) continue;
 
         let overCanyon = false;
 
         for (const can of state.canyons) 
         {
-            if (rx > can.x_pos && rx < can.x_pos + can.width) 
+            if (rock_x > can.x_pos && rock_x < can.x_pos + can.width) 
             {
                 overCanyon = true;
                 break;
@@ -294,7 +340,7 @@ function generateLevelContent({
 
         if (overCanyon) continue;
 
-        state.rocks.push(factory.rock(rx, random(10, 20)));
+        state.rocks.push(factory.rock(rock_x, random(10, 20)));
     }
 
     // Flowers (lighter density, before flag pole area center bias)
@@ -304,14 +350,14 @@ function generateLevelContent({
     {
 
         flowerAttempts++;
-        const fx = random(flagPoleX - 80); // mostly before flag
+        const flower_x = random(flagPoleX - 80); // mostly before flag
 
-        if (fx > safeLeft - 25 && fx < safeRight + 25) continue;
+        if (flower_x > safeLeft - 25 && flower_x < safeRight + 25) continue;
         let badPosition = false;
 
         for (const can of state.canyons) 
         {
-            if (fx > can.x_pos - 10 && fx < can.x_pos + can.width + 10) 
+            if (flower_x > can.x_pos - 10 && flower_x < can.x_pos + can.width + 10) 
             {
                 badPosition = true;
                 break;
@@ -319,7 +365,7 @@ function generateLevelContent({
         }
         if (badPosition) continue;
 
-        state.flowers.push(factory.flower(fx, random(12, 22), floor(random(1000))));
+        state.flowers.push(factory.flower(flower_x, random(12, 22), floor(random(1000))));
     }
 
     // Grass tufts (higher density filler) excluding canyons
@@ -328,16 +374,30 @@ function generateLevelContent({
     while (state.grassTufts.length < grassTarget && grassAttempts < grassTarget * 30)
     {
         grassAttempts++;
-        const gx = random(WORLD_WIDTH);
-        if (gx > safeLeft - 20 && gx < safeRight + 20) continue;
+        const garss_x = random(WORLD_WIDTH);
+        if (garss_x > safeLeft - 20 && garss_x < safeRight + 20) continue;
         let overCan = false;
-        for (const can of state.canyons) { if (gx > can.x_pos - 15 && gx < can.x_pos + can.width + 15) { overCan = true; break; } }
+        for (const can of state.canyons) 
+        {
+            if (garss_x > can.x_pos - 15 && garss_x < can.x_pos + can.width + 15) 
+            {
+                overCan = true;
+                break;
+            }
+        }
         if (overCan) continue;
         // Spacing: avoid clustering too tight
         let close = false;
-        for (const t of state.grassTufts) { if (abs(t.x - gx) < 18) { close = true; break; } }
+        for (const t of state.grassTufts) 
+        {
+            if (abs(t.x - garss_x) < 18) 
+            {
+                close = true;
+                break;
+            }
+        }
         if (close) continue;
-        state.grassTufts.push(factory.grassTuft(gx, random(10, 20)));
+        state.grassTufts.push(factory.grassTuft(garss_x, random(10, 20)));
     }
 
     // Worms (avoid canyons & safe zone)
@@ -351,7 +411,14 @@ function generateLevelContent({
         // Keep worms away from finish flag area (safe zone)
         if (abs(wx - flagPoleX) < 140) continue;
         let overCanyonWorm = false;
-        for (const can of state.canyons) { if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) { overCanyonWorm = true; break; } }
+        for (const can of state.canyons) 
+        {
+            if (wx > can.x_pos - 5 && wx < can.x_pos + can.width + 5) 
+            {
+                overCanyonWorm = true;
+                break;
+            }
+        }
         if (overCanyonWorm) continue;
         // Worm(x, y, segmentCount, direction, speed, phase)
         state.worms.push(factory.worm(wx, state.floorPosY - 3, floor(random(4, 6)), random([-1, 1]), random(0.07, 0.1), random(TWO_PI)));
@@ -363,7 +430,10 @@ function generateBackdrop()
     // Clouds seed
     state.cloudsCoordinates = [];
     const cloudCount = floor(12 * (WORLD_WIDTH / (CANVAS_WIDTH * 1.5))) + 8;
-    for (let i = 0; i < cloudCount; i++) { state.cloudsCoordinates.push({ x_pos: random(WORLD_WIDTH), y_pos: random(70, 130) }); }
+    for (let i = 0; i < cloudCount; i++) 
+    {
+        state.cloudsCoordinates.push({ x_pos: random(WORLD_WIDTH), y_pos: random(70, 130) });
+    }
     state.clouds = factory.clouds(state.cloudsCoordinates);
     // Mountains
     state.mountains = [];
@@ -474,7 +544,10 @@ window.draw = function draw()
                 // Play sound
                 if (state.sound && state.sound.WORM_DIE)
                 {
-                    try { state.sound.WORM_DIE.rate(random(0.9, 1.1)); } catch (e) { }
+                    try 
+                    {
+                        state.sound.WORM_DIE.rate(random(0.9, 1.1));
+                    } catch (e) { }
                     state.sound.WORM_DIE.play();
                 }
                 // Remove worm and apply life penalty
@@ -485,10 +558,16 @@ window.draw = function draw()
                     gameCharacter.isDead = true;
                     state.loseFrame = frameCount;
                     // Play LOST sound (final life) and stop music similar to fall death path
-                    if (state.sound && state.sound.LOST) { state.sound.LOST.play(); }
+                    if (state.sound && state.sound.LOST) 
+                    {
+                        state.sound.LOST.play();
+                    }
                     if (state.sound && state.sound.MUSIC && state.sound.MUSIC.isPlaying())
                     {
-                        try { state.sound.MUSIC.stop(); } catch (e) { }
+                        try 
+                        {
+                            state.sound.MUSIC.stop();
+                        } catch (e) { }
                     }
                 }
             }
@@ -540,7 +619,10 @@ window.keyPressed = function ()
         state.startScreenFade = 1; // begin fade out
         if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying())
         {
-            try { state.sound.MUSIC.play(); } catch (e) { }
+            try 
+            {
+                state.sound.MUSIC.play();
+            } catch (e) { }
         }
         return;
     }
@@ -553,7 +635,13 @@ window.keyPressed = function ()
             const targetVol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
             state.sound.MUSIC.setVolume(targetVol);
             // Ensure music keeps playing silently when muted to resume instantly
-            if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch (e) { } }
+            if (!state.sound.MUSIC.isPlaying()) 
+            {
+                try 
+                {
+                    state.sound.MUSIC.play();
+                } catch (e) { }
+            }
         }
         return;
     }
@@ -570,7 +658,10 @@ window.mousePressed = function ()
         state.startScreenFade = 1;
         if (state.musicEnabled && state.sound && state.sound.MUSIC && !state.sound.MUSIC.isPlaying())
         {
-            try { state.sound.MUSIC.play(); } catch (e) { }
+            try
+            {
+                state.sound.MUSIC.play();
+            } catch (e) { }
         }
         return;
     }
@@ -586,7 +677,13 @@ window.mousePressed = function ()
             {
                 const targetVol = state.musicEnabled ? state.sound.baseVolume * 0.3 : 0;
                 state.sound.MUSIC.setVolume(targetVol);
-                if (!state.sound.MUSIC.isPlaying()) { try { state.sound.MUSIC.play(); } catch (e) { } }
+                if (!state.sound.MUSIC.isPlaying())
+                {
+                    try
+                    {
+                        state.sound.MUSIC.play();
+                    } catch (e) { }
+                }
             }
             return;
         }
@@ -600,10 +697,22 @@ window.mousePressed = function ()
     const commonY = CANVAS_HEIGHT / 3 + 120;
     if (state.flagPole.isReached)
     {
-        if (mouseX >= winBtnX && mouseX <= winBtnX + btnWWin && mouseY >= commonY && mouseY <= commonY + btnHWin) { startGame(); }
+        if (mouseX >= winBtnX
+            && mouseX <= winBtnX + btnWWin
+            && mouseY >= commonY
+            && mouseY <= commonY + btnHWin) 
+        {
+            startGame();
+        }
     } else if (state.loseFrame !== null)
     {
-        if (mouseX >= overBtnX && mouseX <= overBtnX + btnWOver && mouseY >= commonY && mouseY <= commonY + btnHOver) { startGame(); }
+        if (mouseX >= overBtnX
+            && mouseX <= overBtnX + btnWOver
+            && mouseY >= commonY
+            && mouseY <= commonY + btnHOver) 
+        {
+            startGame();
+        }
     }
 };
 
@@ -612,6 +721,9 @@ document.addEventListener('keydown', (eventObject) =>
 {
     if (eventObject.key === 'r' || eventObject.key === 'R')
     {
-        if (state.flagPole.isReached || state.loseFrame !== null) { startGame(); }
+        if (state.flagPole.isReached || state.loseFrame !== null) 
+        {
+            startGame();
+        }
     }
 });

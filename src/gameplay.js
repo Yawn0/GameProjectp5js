@@ -236,7 +236,7 @@ export function checkPlayerDie()
 /** Draw pole and test for completion */
 export function drawFinishLine()
 {
-    const f = state.flagPole;
+    const falgPole = state.flagPole;
     // Pole style
     push();
     const poleGradientSteps = 8;
@@ -245,20 +245,20 @@ export function drawFinishLine()
         const t = i / (poleGradientSteps - 1);
         const col = lerpColor(color(30, 30, 30), color(180, 180, 200), t);
         stroke(col);
-        line(f.x_pos + i * (f.width / poleGradientSteps), f.y_pos, f.x_pos + i * (f.width / poleGradientSteps), f.y_pos - f.height);
+        line(falgPole.x_pos + i * (falgPole.width / poleGradientSteps), falgPole.y_pos, falgPole.x_pos + i * (falgPole.width / poleGradientSteps), falgPole.y_pos - falgPole.height);
     }
     noStroke();
     // Flag cloth
     const wave = sin(frameCount * 0.1) * 5;
     fill(255, 80, 120);
     beginShape();
-    vertex(f.x_pos + f.width, f.y_pos - f.height);
-    vertex(f.x_pos + f.width + 50, f.y_pos - f.height + wave);
-    vertex(f.x_pos + f.width + 50, f.y_pos - f.height + 25 + wave * 0.5);
-    vertex(f.x_pos + f.width, f.y_pos - f.height + 25);
+    vertex(falgPole.x_pos + falgPole.width, falgPole.y_pos - falgPole.height);
+    vertex(falgPole.x_pos + falgPole.width + 50, falgPole.y_pos - falgPole.height + wave);
+    vertex(falgPole.x_pos + falgPole.width + 50, falgPole.y_pos - falgPole.height + 25 + wave * 0.5);
+    vertex(falgPole.x_pos + falgPole.width, falgPole.y_pos - falgPole.height + 25);
     endShape(CLOSE);
     pop();
-    if (!f.isReached) { checkFinishLine(); }
+    if (!falgPole.isReached) { checkFinishLine(); }
 }
 
 // particle spawn when win triggered
