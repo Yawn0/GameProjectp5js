@@ -206,12 +206,11 @@ def create_pdf(filename):
         bullet_style
     ))
     story.append(Paragraph(
-        "• <b>Course Verification Technique:</b> <i>Runtime Assertions (Week 9) & Boundary Value Analysis (Week 14)</i>. "
+        "• <b>Verification Technique:</b> <i>Runtime Assertions & Defensive Validation & Unit Testing</i>. "
         "We can enforce constraints by placing assertions. Although JavaScript has no native "
-        "runtime assert, a helpr function can check constraints (e.g., verifying that the randomized <code>WORLD_WIDTH</code> "
-        "falls within <code>[CANVAS_WIDTH * 2, CANVAS_WIDTH * 5]</code>). For testing compliance, <b>Boundary Value Analysis (BVA)</b> "
-        "in unit testing (Week 14) should be used. Automated test suites should simulate boundary values for input variables "
-        "to ensurephysics engine handles edge conditions without failure.",
+        "runtime assert, a helpr function check constraints. For testing compliance, unit testing should be used. "
+        "Automated test cases should feed boundary values (such as minimum and maximum expected coordinate ranges) to coordinates and "
+        "physics functions to ensure the execusion logic behaves predictabily and does not crash.",
         bullet_style
     ))
     story.append(Spacer(1, 8))
@@ -219,18 +218,17 @@ def create_pdf(filename):
     # --- ITEM 2 ---
     story.append(Paragraph("Item 2: [13] Validate Data Length (Input Validation)", h2_style))
     story.append(Paragraph(
-        "• <b>Relevance to Project:</b> During level generation in generation.js, "
-        "the engine dynamically populates collections such as <code>state.platforms</code> or <code>state.worms</code>. "
+        "• <b>Relevance to Project:</b> During procedurial layout generation, "
+        "the engine dynamically populates collections such as <code>state.platfroms</code> or <code>state.worms</code>. "
         "Without strict validations, scaling parameters could exhaust available memory space or cause "
         "excessive rendering overhead.",
         bullet_style
     ))
     story.append(Paragraph(
-        "• <b>Course Verification Technique:</b> <i>Defensive Bounding (Week 9) & Automated Stress Testing (Week 14)</i>. "
+        "• <b>Verification Technique:</b> <i>Defensiv Bounding & Unit Testing</i>. "
         "The codebase uses a defensive technique by bounding iterative random placement within attempt limits (e.g., <code>attempts < MAX_ATTEMPTS</code>). "
-        "Compliance is checked through <b>White Box Testing</b> (Week 14) to verify that generated collection sizes conform to density constraints. "
-        "Automated black box scripts can simulate prolonged gameplay runs to verify that the entity arrays stay bounded and memory usage "
-        "remain stable over time.",
+        "Compliance is checked through unit testing to verify that generated collection sizes conform to density constraints. "
+        "Developers can write unit test suites that check that entity counts are bounded and do not grow exponentialy under larger randomized world configurations.",
         bullet_style
     ))
     story.append(Spacer(1, 8))
@@ -240,15 +238,15 @@ def create_pdf(filename):
     story.append(Paragraph(
         "• <b>Relevance to Project:</b> JavaScript manages memory automatically, avoiding typical low-level C/C++ memory overflows. "
         "However, accessing invalid indices (e.g., referencing an index out of bounds) "
-        "returns <code>undefined</code>. Dereferencing properties on an <code>undefined</code> element will throw a TypeError, crashing the game.",
+        "returns <code>undefned</code>. Dereferencing properties on an <code>undefned</code> element will throw a Typerror, crashing the game.",
         bullet_style
     ))
     story.append(Paragraph(
-        "• <b>Course Verification Technique:</b> <i>Defensive Coding & Exception Handling (Weeks 9 & 11) & Unit Testing (Weeks 5-8)</i>. "
+        "• <b>Verification Technique:</b> <i>Defensiv Boundary Checks & Unit Testing</i>. "
         "I could implement defensive checks at indexing boundaries to guarantee element existence before member access. "
         "To check compliance, unit tests must cover edge inputs: so writing test cases that query empty collections, "
         "verif=ing behavior when accessing elements past array boundaries and confirming that functions handle missing indices gracefully. "
-        "If a lookup fails, structured exception handling (using <code>try-catch</code>) can prevent the application from crashing.",
+        "If a lookup fails, simple checks can prevent the application from crashing.",
         bullet_style
     ))
     story.append(Spacer(1, 8))
@@ -256,17 +254,17 @@ def create_pdf(filename):
     # --- ITEM 4 ---
     story.append(Paragraph("Item 4: Centralize Input Validation Routines (Input Validation)", h2_style))
     story.append(Paragraph(
-        "• <b>Relevance to Project:</b> <i>Blobby Adventure</i> generates game entities (platforms, canyons, collectibles, enemies) "
+        "• <b>Relevance to Project:</b> <i>Blobby Adventure</i> generates game entities (platfroms, canyons, collectibles, enemies) "
         "using separate coordinate layout rules. Validating dimensions and safety zones in each generation function "
         "increases coupling and duplication, which heightens` the risk of omitting integrity checks.",
         bullet_style
     ))
     story.append(Paragraph(
-        "• <b>Course Verification Technique:</b> <i>The Factory Pattern (Weeks 1 & 13) & Static Analysis Code Reviews (Week 10)</i>. "
+        "• <b>Verification Technique:</b> <i>The Factory Pattern (Modules) & Static Analysis Code Reviews</i>. "
         "The project decouples object construction via the <b>Factory Pattern</b> using a centralized <code>factory</code> object in "
-        "entities.js. Compliance with centralized validation "
+        "entities.js (applying module design and cohesion principles). Compliance with centralized validation "
         "is achieved by embedding verification rules directly into the factory methods. "
-        "Compliance can be checked via <b>Code Reviews / Static Analysis</b> (Week 10) to verify that raw <code>new</code> constructor calls "
+        "Compliance can be checked via <b>Code Reviews / Static Analysis</b> to verify that raw <code>new</code> constructor calls "
         "are prohibited outside <code>entities.js</code>, enforcing the centralized validation structure.",
         bullet_style
     ))
@@ -280,10 +278,10 @@ def create_pdf(filename):
         bullet_style
     ))
     story.append(Paragraph(
-        "• <b>Course Verification Technique:</b> <i>Software Security Development Lifecycle (SDL) Inventory & SCA (Week 10)</i>. "
+        "• <b>Verification Technique:</b> <i>Software Security Development Lifecycle (SDL) Inventory & SCA</i>. "
         "As covered in Microsoft SDL principles, secure projects must establish a complete inventory of external resources. "
         "Compliance is checked via automated <b>Software Composition Analysis (SCA)</b> and dependency vulnerability scanners "
-        "(e.g., <code>npm audit</code>). Furthermore, we can use <b>Static Code Reviews</b> (Week 10).",
+        "(e.g., <code>npm audit</code>). Furthermore, we can use <b>Static Code Reviews</b>.",
         bullet_style
     ))
     story.append(Spacer(1, 15))
@@ -291,7 +289,7 @@ def create_pdf(filename):
     story.append(Paragraph("2. Secure Software Development Lifecycle (SDLC) Integration", h1_style))
     story.append(Paragraph(
         "Integrating secure programming practices into the development lifecycle ensures security is intrinsic to the software, rather than an afterthought. "
-        "As examined in Week 10, we can integrate these practices using three distinct phases of the Software Security Development Lifecycle:",
+        "We can integrate these practices using three distinct phases of the Software Security Development Lifecycle:",
         styles['Normal']
     ))
     story.append(Spacer(1, 6))
@@ -302,16 +300,13 @@ def create_pdf(filename):
         bullet_style
     ))
     story.append(Paragraph(
-        "2. <b>Unit Testing and Test-Driven Development (TDD):</b> Unit testing (Weeks 5-8) should be utilized to construct "
+        "2. <b>Unit Testing and Test-Driven Development (TDD):</b> Unit testing should be utilized to construct "
         "a regression test suite. Following TDD, test assertions should be written to verify validation rules before functional "
         "logic is written,.",
         bullet_style
     ))
     story.append(Paragraph(
-        "3. <b>Automated Black Box / Integration Testing in Games:</b> Following the testing methodologies of Week 14, automated "
-        "black box scripts should simulate random keyboard and mouse inputs "
-        "to verify robustness. The automated system checks that the client does not crash or expose raw console error traces to the user, "
-        "fulfilling the principle of safe defaults and secure error handling.",
+        "3. <b>Defensive Assertions & Runtime Monitoring:</b> Implement runtime assertion checks at boundary transitions to verify that variables remain within safe envelopes during live gameplay execution, preventing unhandled runtime exceptions from leaking details or crashing the browser environment.",
         bullet_style
     ))
 
